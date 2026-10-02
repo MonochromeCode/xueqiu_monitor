@@ -25,6 +25,7 @@
       <span id="server-time" class="meta-chip">—</span>
       <button id="btn-refresh" class="btn ghost" type="button">刷新</button>
       <a class="btn ghost" href="/config">配置</a>
+      <button id="btn-xueqiu-login" class="btn ghost" type="button">登录雪球</button>
       <button id="btn-check" class="btn primary" type="button">立即检查</button>
     </div>
   </header>
@@ -35,8 +36,12 @@
     <section class="panel">
       <div class="panel-head">
         <h2>监控组合</h2>
-        <span id="cube-count" class="meta-chip">0</span>
+        <div class="panel-head-actions">
+          <span id="cube-count" class="meta-chip">0</span>
+          <button id="btn-cube-live" class="btn ghost sm" type="button">查询原组合</button>
+        </div>
       </div>
+      <div id="cube-tabs" class="cube-tabs" role="tablist" aria-label="监控组合切换"></div>
       <div id="cubes" class="cube-list"></div>
     </section>
 
@@ -56,6 +61,7 @@
         <h2>运行日志</h2>
         <div class="panel-head-actions">
           <span id="log-live" class="meta-chip live-chip">实时</span>
+          <button id="btn-log-clear" class="btn ghost sm" type="button">清空</button>
           <button id="btn-log-refresh" class="btn ghost sm" type="button">更新</button>
         </div>
       </div>

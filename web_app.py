@@ -8,7 +8,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import logging
 import os
 import threading
 import time
@@ -22,6 +24,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import xueqiu_monitor as mon
+import xueqiu_login as xq_login
 
 BASE_DIR = Path(__file__).resolve().parent
 WEB_DIR = BASE_DIR / "web"
@@ -36,6 +39,11 @@ ENV_KEYS = (
     "WEIGHT_CHANGE_THRESHOLD",
     "AT_ALL",
     "LOG_FILE",
+    "TRADING_HOURS_ONLY",
+    "OFF_HOURS_INTERVAL",
+    "PRE_CLOSE_MINUTES",
+    "PRE_CLOSE_INTERVAL",
+    "MARKET_CLOSE",
 )
 
 app = FastAPI(title="雪球组合监控", version="1.0.0")
@@ -65,6 +73,11 @@ class ConfigUpdate(BaseModel):
     weight_change_threshold: float = 1.0
     at_all: bool = False
     log_file: str = "xueqiu_monitor.log"
+    trading_hours_only: bool = True
+    off_hours_interval: int = 1800
+    pre_close_minutes: int = 15
+    pre_close_interval: int = 60
+    market_close: str = "15:00"
 
 
 def _load_state() -> dict:
@@ -166,6 +179,11 @@ def _apply_runtime_config(
     weight_threshold: float,
     at_all: bool,
     log_file: str,
+    trading_hours_only: bool = True,
+    off_hours_interval: int = 1800,
+    pre_close_minutes: int = 15,
+    pre_close_interval: int = 60,
+    market_close: str = "15:00",
 ) -> None:
     mon.XUEQIU_COOKIE = cookie
     mon.DINGTALK_WEBHOOK = webhook
@@ -174,6 +192,11 @@ def _apply_runtime_config(
     mon.WEIGHT_CHANGE_THRESHOLD = weight_threshold
     mon.AT_ALL = at_all
     mon.LOG_FILE = log_file
+    mon.TRADING_HOURS_ONLY = trading_hours_only
+    mon.OFF_HOURS_INTERVAL = off_hours_interval
+    mon.PRE_CLOSE_MINUTES = pre_close_minutes
+    mon.PRE_CLOSE_INTERVAL = pre_close_interval
+    mon.MARKET_CLOSE = market_close
 
     os.environ["XUEQIU_COOKIE"] = cookie
     os.environ["DINGTALK_WEBHOOK"] = webhook
@@ -182,6 +205,11 @@ def _apply_runtime_config(
     os.environ["WEIGHT_CHANGE_THRESHOLD"] = str(weight_threshold)
     os.environ["AT_ALL"] = "true" if at_all else "false"
     os.environ["LOG_FILE"] = log_file
+    os.environ["TRADING_HOURS_ONLY"] = "true" if trading_hours_only else "false"
+    os.environ["OFF_HOURS_INTERVAL"] = str(off_hours_interval)
+    os.environ["PRE_CLOSE_MINUTES"] = str(pre_close_minutes)
+    os.environ["PRE_CLOSE_INTERVAL"] = str(pre_close_interval)
+    os.environ["MARKET_CLOSE"] = market_close
 
 
 def _env_file_mtime() -> Optional[float]:
@@ -215,6 +243,22 @@ def _sync_runtime_from_env(force: bool = False) -> bool:
 
     at_all = str(env_map.get("AT_ALL", mon.AT_ALL)).lower() in ("1", "true", "yes", "on")
     log_file = env_map.get("LOG_FILE", mon.LOG_FILE or "")
+    trading_hours_only = str(
+        env_map.get("TRADING_HOURS_ONLY", mon.TRADING_HOURS_ONLY)
+    ).lower() in ("1", "true", "yes", "on")
+    try:
+        off_hours_interval = int(env_map.get("OFF_HOURS_INTERVAL", mon.OFF_HOURS_INTERVAL))
+    except ValueError:
+        off_hours_interval = mon.OFF_HOURS_INTERVAL
+    try:
+        pre_close_minutes = int(env_map.get("PRE_CLOSE_MINUTES", mon.PRE_CLOSE_MINUTES))
+    except ValueError:
+        pre_close_minutes = mon.PRE_CLOSE_MINUTES
+    try:
+        pre_close_interval = int(env_map.get("PRE_CLOSE_INTERVAL", mon.PRE_CLOSE_INTERVAL))
+    except ValueError:
+        pre_close_interval = mon.PRE_CLOSE_INTERVAL
+    market_close = env_map.get("MARKET_CLOSE", mon.MARKET_CLOSE) or "15:00"
 
     _apply_runtime_config(
         cookie=cookie,
@@ -224,6 +268,11 @@ def _sync_runtime_from_env(force: bool = False) -> bool:
         weight_threshold=weight_threshold,
         at_all=at_all,
         log_file=log_file,
+        trading_hours_only=trading_hours_only,
+        off_hours_interval=off_hours_interval,
+        pre_close_minutes=pre_close_minutes,
+        pre_close_interval=pre_close_interval,
+        market_close=market_close,
     )
     _env_mtime = mtime
     return True
@@ -240,10 +289,18 @@ def _current_config() -> dict[str, Any]:
         "weight_change_threshold": mon.WEIGHT_CHANGE_THRESHOLD,
         "at_all": mon.AT_ALL,
         "log_file": mon.LOG_FILE or "",
+        "trading_hours_only": mon.TRADING_HOURS_ONLY,
+        "off_hours_interval": mon.OFF_HOURS_INTERVAL,
+        "pre_close_minutes": mon.PRE_CLOSE_MINUTES,
+        "pre_close_interval": mon.PRE_CLOSE_INTERVAL,
+        "market_close": mon.MARKET_CLOSE,
         "config_ok": _config_ok(),
         "env_path": str(ENV_FILE),
         "mtime": mtime,
         "updated_at": datetime.fromtimestamp(mtime).isoformat(timespec="seconds") if mtime else None,
+        "schedule": mon.get_schedule_info(),
+        "token": _token_info(_load_state()),
+        "login": xq_login.get_login_status(),
     }
 
 
@@ -271,22 +328,51 @@ def _token_info(state: dict) -> dict[str, Any]:
         else:
             status = "ok"
 
+    issued = mon._get_token_issued_at(mon.XUEQIU_COOKIE)
+    acquired_at = token_state.get("acquired_at")
+    if not acquired_at and issued is not None:
+        acquired_at = datetime.fromtimestamp(issued).isoformat(timespec="seconds")
+
     return {
         "status": status,
         "expiry": datetime.fromtimestamp(expiry).isoformat(timespec="seconds") if expiry else None,
         "remaining_hours": round(remaining_hours, 1) if remaining_hours is not None else None,
         "notified_expiry": bool(token_state.get("notified_expiry")),
+        "acquired_at": acquired_at,
+        "issued_at": datetime.fromtimestamp(issued).isoformat(timespec="seconds") if issued else None,
     }
+
+
+def _record_cookie_acquired(cookie: str) -> None:
+    """Cookie 更新时写入获取时间到 monitor_state.json。"""
+    cookie = (cookie or "").strip()
+    if not cookie:
+        return
+    state = _load_state()
+    token_state = state.setdefault("_token", {})
+    new_hash = hashlib.md5(cookie.encode()).hexdigest()
+    if token_state.get("hash") and token_state["hash"] != new_hash:
+        token_state.pop("notified_expiry", None)
+    token_state["hash"] = new_hash
+    issued = mon._get_token_issued_at(cookie)
+    if issued is not None:
+        token_state["issued_at"] = issued
+        token_state["acquired_at"] = datetime.fromtimestamp(issued).isoformat(timespec="seconds")
+    else:
+        token_state["acquired_at"] = datetime.now().isoformat(timespec="seconds")
+    mon._save_state(state)
 
 
 def _cube_summary(cube_id: str, data: dict) -> dict[str, Any]:
     positions = data.get("positions") or []
     total_weight = sum(float(p.get("weight") or 0) for p in positions)
+    cash = max(0.0, 100.0 - total_weight)
     return {
         "id": cube_id,
         "name": (data.get("nav") or {}).get("name") or cube_id,
         "position_count": len(positions),
         "total_weight": round(total_weight, 2),
+        "cash": round(cash, 2),
         "last_rb_id": data.get("last_rb_id"),
         "last_check": data.get("last_check"),
         "positions": sorted(positions, key=lambda p: float(p.get("weight") or 0), reverse=True),
@@ -320,6 +406,10 @@ def update_config(body: ConfigUpdate):
     check_interval = int(body.check_interval)
     weight_threshold = float(body.weight_change_threshold)
     log_file = (body.log_file or "").strip()
+    off_hours_interval = int(body.off_hours_interval)
+    pre_close_minutes = int(body.pre_close_minutes)
+    pre_close_interval = int(body.pre_close_interval)
+    market_close = (body.market_close or "15:00").strip()
 
     if not cookie:
         raise HTTPException(status_code=400, detail="雪球 Cookie 不能为空")
@@ -331,6 +421,16 @@ def update_config(body: ConfigUpdate):
         raise HTTPException(status_code=400, detail="检查间隔不能小于 10 秒")
     if weight_threshold < 0:
         raise HTTPException(status_code=400, detail="仓位阈值不能为负数")
+    if off_hours_interval < 60:
+        raise HTTPException(status_code=400, detail="休市间隔不能小于 60 秒")
+    if pre_close_interval < 10:
+        raise HTTPException(status_code=400, detail="收盘前间隔不能小于 10 秒")
+    try:
+        hh, mm = market_close.split(":")
+        if not (0 <= int(hh) <= 23 and 0 <= int(mm) <= 59):
+            raise ValueError
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="收盘时间格式应为 HH:MM") from exc
 
     values = {
         "XUEQIU_COOKIE": cookie,
@@ -340,6 +440,11 @@ def update_config(body: ConfigUpdate):
         "WEIGHT_CHANGE_THRESHOLD": str(weight_threshold),
         "AT_ALL": "true" if body.at_all else "false",
         "LOG_FILE": log_file,
+        "TRADING_HOURS_ONLY": "true" if body.trading_hours_only else "false",
+        "OFF_HOURS_INTERVAL": str(off_hours_interval),
+        "PRE_CLOSE_MINUTES": str(pre_close_minutes),
+        "PRE_CLOSE_INTERVAL": str(pre_close_interval),
+        "MARKET_CLOSE": market_close,
     }
 
     with _config_lock:
@@ -353,10 +458,17 @@ def update_config(body: ConfigUpdate):
                 weight_threshold=weight_threshold,
                 at_all=bool(body.at_all),
                 log_file=log_file,
+                trading_hours_only=bool(body.trading_hours_only),
+                off_hours_interval=off_hours_interval,
+                pre_close_minutes=pre_close_minutes,
+                pre_close_interval=pre_close_interval,
+                market_close=market_close,
             )
             _env_mtime = _env_file_mtime()
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"保存配置失败: {e}") from e
+
+    _record_cookie_acquired(cookie)
 
     return {
         "ok": True,
@@ -377,6 +489,7 @@ def status():
             "name": cube_id,
             "position_count": 0,
             "total_weight": 0,
+            "cash": 100.0,
             "last_rb_id": None,
             "last_check": None,
             "positions": [],
@@ -396,6 +509,8 @@ def status():
         "webhook_configured": "你的access_token" not in mon.DINGTALK_WEBHOOK and bool(mon.DINGTALK_WEBHOOK),
         "token": _token_info(state),
         "check": _check_status,
+        "login": xq_login.get_login_status(),
+        "schedule": mon.get_schedule_info(),
         "cubes": cubes,
         "recent_changes": _recent_changes(state, 30),
         "server_time": datetime.now().isoformat(timespec="seconds"),
@@ -420,6 +535,7 @@ def list_cubes():
             "name": cube_id,
             "position_count": 0,
             "total_weight": 0,
+            "cash": 100.0,
             "last_rb_id": None,
             "last_check": None,
             "positions": [],
@@ -443,6 +559,48 @@ def get_cube(cube_id: str):
     return _cube_summary(cube_id, raw)
 
 
+@app.get("/api/cubes/{cube_id}/live")
+def get_cube_live(cube_id: str):
+    """实时查询雪球原组合行情与持仓，并刷新本地快照。"""
+    _sync_runtime_from_env()
+    cube_id = cube_id.upper().strip()
+    if not cube_id:
+        raise HTTPException(status_code=400, detail="组合代码不能为空")
+    if "你的token" in mon.XUEQIU_COOKIE or not mon.XUEQIU_COOKIE:
+        raise HTTPException(status_code=400, detail="雪球 Cookie 未配置或无效")
+
+    try:
+        client = mon.XueQiuClient(mon.XUEQIU_COOKIE, cube_id)
+        quote = client.get_cube_quote()
+        positions = client.get_current_positions()
+        latest_rb = client.get_latest_rebalancing()
+        nav_info = mon.parse_nav_from_rebalancing(latest_rb) if latest_rb else {}
+        if quote and quote.get("name"):
+            nav_info["name"] = quote["name"]
+        if not nav_info.get("name"):
+            nav_info["name"] = cube_id
+
+        rb_id = None
+        if isinstance(latest_rb, dict):
+            rb_id = latest_rb.get("id") or latest_rb.get("rebalancing_id")
+
+        state = _load_state()
+        mon._save_cube_state(state, cube_id, positions, nav_info, rb_id)
+        mon._save_state(state)
+
+        summary = _cube_summary(cube_id, state.get(cube_id) or {})
+        summary["quote"] = quote
+        summary["source"] = "live"
+        summary["live_at"] = datetime.now().isoformat(timespec="seconds")
+        if not positions and not quote:
+            summary["warning"] = "未拉到持仓与行情，请检查 Cookie 或组合代码"
+        return summary
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"查询失败: {e}") from e
+
+
 @app.get("/api/logs")
 def logs(lines: int = 80):
     _sync_runtime_from_env()
@@ -464,6 +622,47 @@ def logs(lines: int = 80):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/logs/clear")
+def clear_logs():
+    """清空当前日志文件（截断，不删除文件）。"""
+    _sync_runtime_from_env()
+    log_path = _log_file_path()
+    if not log_path:
+        raise HTTPException(status_code=400, detail="未配置日志文件")
+
+    truncated = False
+    handlers = list(logging.getLogger().handlers) + list(mon.logger.handlers)
+    for handler in handlers:
+        if not isinstance(handler, logging.FileHandler):
+            continue
+        try:
+            handler.acquire()
+            stream = getattr(handler, "stream", None)
+            if stream is not None:
+                stream.seek(0)
+                stream.truncate(0)
+                stream.flush()
+                truncated = True
+        except Exception:
+            pass
+        finally:
+            try:
+                handler.release()
+            except Exception:
+                pass
+
+    try:
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.truncate(0)
+        truncated = True
+    except Exception as e:
+        if not truncated:
+            raise HTTPException(status_code=500, detail=f"清空日志失败: {e}") from e
+
+    mon.logger.info("日志已手动清空")
+    return {"ok": True, "message": "日志已清空", "path": str(log_path)}
 
 
 def _run_check_once():
@@ -503,6 +702,77 @@ def trigger_check():
     return CheckResponse(ok=True, message="已开始检查", running=True)
 
 
+def _save_cookie_only(cookie: str) -> None:
+    """只更新雪球 Cookie，保留其余配置。"""
+    global _env_mtime
+    cookie = (cookie or "").strip()
+    ok, reason = xq_login.cookie_has_required_fields(cookie)
+    if not ok:
+        raise ValueError(reason)
+    alive, alive_reason = xq_login.validate_cookie_alive(cookie)
+    if not alive:
+        raise ValueError(alive_reason)
+
+    cfg = _current_config()
+    cubes = _parse_cubes(cfg.get("monitored_cubes") or "")
+    if not cubes:
+        cubes = list(mon.MONITORED_CUBES) or ["ZH123456"]
+
+    values = {
+        "XUEQIU_COOKIE": cookie,
+        "DINGTALK_WEBHOOK": cfg["dingtalk_webhook"],
+        "MONITORED_CUBES": ",".join(cubes),
+        "CHECK_INTERVAL": str(cfg["check_interval"]),
+        "WEIGHT_CHANGE_THRESHOLD": str(cfg["weight_change_threshold"]),
+        "AT_ALL": "true" if cfg["at_all"] else "false",
+        "LOG_FILE": cfg.get("log_file") or "",
+        "TRADING_HOURS_ONLY": "true" if cfg.get("trading_hours_only", True) else "false",
+        "OFF_HOURS_INTERVAL": str(cfg.get("off_hours_interval", 1800)),
+        "PRE_CLOSE_MINUTES": str(cfg.get("pre_close_minutes", 15)),
+        "PRE_CLOSE_INTERVAL": str(cfg.get("pre_close_interval", 60)),
+        "MARKET_CLOSE": cfg.get("market_close") or "15:00",
+    }
+    with _config_lock:
+        _write_env_file(values)
+        _apply_runtime_config(
+            cookie=cookie,
+            webhook=cfg["dingtalk_webhook"],
+            cubes=cubes,
+            check_interval=int(cfg["check_interval"]),
+            weight_threshold=float(cfg["weight_change_threshold"]),
+            at_all=bool(cfg["at_all"]),
+            log_file=cfg.get("log_file") or "",
+            trading_hours_only=bool(cfg.get("trading_hours_only", True)),
+            off_hours_interval=int(cfg.get("off_hours_interval", 1800)),
+            pre_close_minutes=int(cfg.get("pre_close_minutes", 15)),
+            pre_close_interval=int(cfg.get("pre_close_interval", 60)),
+            market_close=cfg.get("market_close") or "15:00",
+        )
+        _env_mtime = _env_file_mtime()
+    _record_cookie_acquired(cookie)
+
+
+@app.get("/api/xueqiu/login/status")
+def xueqiu_login_status():
+    return xq_login.get_login_status()
+
+
+@app.post("/api/xueqiu/login/start")
+def xueqiu_login_start(timeout_sec: int = 300):
+    timeout_sec = max(60, min(int(timeout_sec), 900))
+
+    def _on_success(cookie: str):
+        _save_cookie_only(cookie)
+
+    status = xq_login.start_login(_on_success, timeout_sec=timeout_sec)
+    return {"ok": True, "login": status}
+
+
+@app.post("/api/xueqiu/login/cancel")
+def xueqiu_login_cancel():
+    return {"ok": True, "login": xq_login.cancel_login()}
+
+
 @app.get("/")
 def index():
     return FileResponse(WEB_DIR / "index.html")
@@ -517,17 +787,21 @@ app.mount("/static", StaticFiles(directory=str(WEB_DIR)), name="static")
 
 
 def _background_monitor():
-    """定时监控循环：与 Web 控制台共用配置与检查锁。"""
+    """定时监控循环：交易时段加密、休市降频。"""
     mon.logger.info("后台监控线程已启动")
-    # 等 Web 服务起来后再做首检，方便前端先打开
     time.sleep(2)
     while True:
         _sync_runtime_from_env()
-        interval = max(10, int(mon.CHECK_INTERVAL or 300))
+        sched = mon.get_schedule_info()
+        interval = max(10, int(sched["interval"]))
         if _config_ok():
+            # 休市也做低频检查，便于捕捉 Cookie 失效与隔夜调仓
             if _check_lock.acquire(blocking=False):
                 _check_status["running"] = True
                 _check_status["error"] = None
+                mon.logger.info(
+                    f"后台检查开始｜时段={sched['label']}｜下次间隔={interval}s"
+                )
                 _run_check_once()
             else:
                 mon.logger.info("已有检查任务在运行，本轮后台检查跳过")

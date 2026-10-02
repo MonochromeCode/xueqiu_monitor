@@ -1,13 +1,115 @@
 {
   "_token": {
-    "hash": "4bff0097b90bc044f8e9d723ee40c798"
+    "hash": "0e39e29cf4bf96094843936942382558",
+    "issued_at": 1790946917.73,
+    "acquired_at": "2026-10-02T21:15:17",
+    "expiry": 1793538370.0
   },
   "ZH3605259": {
-    "positions": [],
+    "positions": [
+      {
+        "symbol": "SH600640",
+        "name": "国脉文化",
+        "weight": 80.0,
+        "prev_weight": 0.0,
+        "price": 0.0
+      }
+    ],
     "nav": {
-      "name": "ZH3605259"
+      "name": "佛性组合"
     },
-    "last_rb_id": null,
-    "last_check": "2026-10-02T20:34:26.354906"
-  }
+    "last_rb_id": 240906191,
+    "last_check": "2026-10-02T21:30:14.361835"
+  },
+  "_changes": [
+    {
+      "id": "ZH3605259-240906191-1790947745702",
+      "cube_id": "ZH3605259",
+      "cube_name": "ZH3605259",
+      "rb_id": 240906191,
+      "time": "2026-10-02T21:29:05",
+      "title": "雪球组合变动 · ZH3605259",
+      "notified": true,
+      "total_weight": 80.0,
+      "cash": 20.0,
+      "changes": [
+        {
+          "type": "卖出",
+          "symbol": "BJ920278",
+          "name": "鹿得医疗",
+          "old_weight": 12.0,
+          "new_weight": 0,
+          "price": 0.0,
+          "detail": "清仓（原仓位 12.0%）"
+        },
+        {
+          "type": "卖出",
+          "symbol": "SH688016",
+          "name": "心脉医疗",
+          "old_weight": 4.0,
+          "new_weight": 0,
+          "price": 0.0,
+          "detail": "清仓（原仓位 4.0%）"
+        },
+        {
+          "type": "卖出",
+          "symbol": "BJ920179",
+          "name": "凯德石英",
+          "old_weight": 2.0,
+          "new_weight": 0,
+          "price": 0.0,
+          "detail": "清仓（原仓位 2.0%）"
+        }
+      ]
+    },
+    {
+      "id": "ZH3605259-240905767-1790947665008",
+      "cube_id": "ZH3605259",
+      "cube_name": "ZH3605259",
+      "rb_id": 240905767,
+      "time": "2026-10-02T21:27:45",
+      "title": "雪球组合变动 · ZH3605259",
+      "notified": true,
+      "total_weight": 98.0,
+      "cash": 2.0,
+      "changes": [
+        {
+          "type": "新增",
+          "symbol": "BJ920278",
+          "name": "鹿得医疗",
+          "old_weight": 0,
+          "new_weight": 12.0,
+          "price": 0.0,
+          "detail": "建仓 12.0%"
+        },
+        {
+          "type": "新增",
+          "symbol": "SH688016",
+          "name": "心脉医疗",
+          "old_weight": 0,
+          "new_weight": 4.0,
+          "price": 0.0,
+          "detail": "建仓 4.0%"
+        },
+        {
+          "type": "新增",
+          "symbol": "SH600640",
+          "name": "国脉文化",
+          "old_weight": 0,
+          "new_weight": 80.0,
+          "price": 0.0,
+          "detail": "建仓 80.0%"
+        },
+        {
+          "type": "新增",
+          "symbol": "BJ920179",
+          "name": "凯德石英",
+          "old_weight": 0,
+          "new_weight": 2.0,
+          "price": 0.0,
+          "detail": "建仓 2.0%"
+        }
+      ]
+    }
+  ]
 }

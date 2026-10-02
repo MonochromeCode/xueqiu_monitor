@@ -10,3 +10,6 @@ python-dotenv>=1.0.0
 # Web 控制台
 fastapi>=0.110.0
 uvicorn[standard]>=0.27.0
+
+# 浏览器登录抓取 Cookie（可选，用于「登录雪球获取 Cookie」）
+playwright>=1.40.0

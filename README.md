@@ -26,9 +26,12 @@
 
 ### 监控能力
 - **自动轮询** — 内置定时循环，无需额外调度器
+- **交易时段智能调度** — 盘中正常间隔、收盘前加速、休市/周末降频
 - **仓位变动检测** — 基于本地持仓快照对比，避免重复触发
 - **防重复推送（双重）** — 调仓记录 ID 比对 + 60 秒冷却期
 - **钉钉同步展示** — 成功推送钉钉的持仓变动会实时出现在看板「持仓变动」区
+- **现金比例** — 通知与看板展示持仓合计 / 现金未分配
+- **三接口级联降级** — 主接口 → v5 备用 → history 降级
 - **Token 过期预警** — 过期前 1 天钉钉提醒
 - **钉钉 Markdown 通知** — 支持 @个人 或 @所有人
 - **状态持久化** — `monitor_state.json` 保存快照，重启不丢失
@@ -37,6 +40,7 @@
 - **一键启动** — 后台监控 + 前端页面同时启动，默认打开浏览器
 - **实时看板** — 概览、持仓权重、运行日志每秒刷新
 - **在线配置** — 全部配置可在页面编辑，写入 `.env` 并立即生效
+- **一键登录雪球** — 打开浏览器手动登录后自动抓取 Cookie 写入配置
 - **手动检查** — 一键触发一轮持仓检查
 - **组合外链** — 点击组合代码跳转雪球页面
 
@@ -48,6 +52,7 @@
 
 ```bash
 pip install -r requirements.txt
+playwright install chromium
 ```
 
 ### 2. 配置 `.env`
@@ -110,10 +115,15 @@ python xueqiu_monitor.py
 | `XUEQIU_COOKIE` | — | 雪球登录 Cookie（必填） |
 | `DINGTALK_WEBHOOK` | — | 钉钉机器人 Webhook（必填） |
 | `MONITORED_CUBES` | — | 组合代码，多个用英文逗号分隔（必填） |
-| `CHECK_INTERVAL` | `300` | 检查间隔（秒） |
+| `CHECK_INTERVAL` | `300` | 交易时段检查间隔（秒） |
 | `WEIGHT_CHANGE_THRESHOLD` | `1.0` | 仓位变动阈值（%） |
 | `AT_ALL` | `false` | 是否 @所有人 |
 | `LOG_FILE` | `xueqiu_monitor.log` | 日志文件路径 |
+| `TRADING_HOURS_ONLY` | `true` | 启用交易时段智能调度 |
+| `OFF_HOURS_INTERVAL` | `1800` | 休市/周末检查间隔（秒） |
+| `PRE_CLOSE_MINUTES` | `15` | 收盘前加速窗口（分钟） |
+| `PRE_CLOSE_INTERVAL` | `60` | 收盘前检查间隔（秒） |
+| `MARKET_CLOSE` | `15:00` | 下午收盘时间（含港股可设 16:00） |
 
 > 前端配置页修改后会同步写入 `.env`。若单独运行 `xueqiu_monitor.py`，需重启该进程才能读到新配置。
 
@@ -198,6 +208,9 @@ xueqiu_monitor/
 |------|------|------|
 | GET | `/api/status` | 监控概览、持仓快照、最近变动 |
 | GET | `/api/changes` | 持仓变动历史（与钉钉已推送同步） |
+| POST | `/api/xueqiu/login/start` | 打开浏览器登录雪球并自动抓 Cookie |
+| GET | `/api/xueqiu/login/status` | 登录抓取进度 |
+| POST | `/api/xueqiu/login/cancel` | 取消登录 |
 | GET / PUT | `/api/config` | 读取 / 保存配置 |
 | GET | `/api/logs` | 最近日志 |
 | POST | `/api/check` | 手动触发一轮检查 |

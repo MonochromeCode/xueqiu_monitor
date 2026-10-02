@@ -9,6 +9,7 @@
 - 监控主逻辑：单文件 `xueqiu_monitor.py`
 - Web 控制台：`web_app.py`（FastAPI + 后台监控线程）+ `web/` 静态前端
 - 一键启动：`python web_app.py` 或 `start.bat`（默认打开浏览器）
+- 可选：`playwright` 用于「登录雪球获取 Cookie」
 
 ## 核心架构
 
@@ -35,10 +36,11 @@
 - `XUEQIU_COOKIE`（必填）
 - `DINGTALK_WEBHOOK`（必填）
 - `MONITORED_CUBES`（必填，逗号分隔）
-- `CHECK_INTERVAL`（默认 300）
+- `CHECK_INTERVAL`（默认 300，交易时段）
 - `WEIGHT_CHANGE_THRESHOLD`（默认 1.0%）
 - `AT_ALL`（默认 false）
 - `LOG_FILE`（默认 xueqiu_monitor.log）
+- `TRADING_HOURS_ONLY` / `OFF_HOURS_INTERVAL` / `PRE_CLOSE_*` / `MARKET_CLOSE`
 
 ## 开发规范
 - 保持单文件架构，避免过度模块化

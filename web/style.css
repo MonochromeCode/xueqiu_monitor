@@ -302,9 +302,84 @@ a.btn {
   letter-spacing: -0.02em;
 }
 
+.cube-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.cube-tab {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ink-soft);
+  font-family: var(--font);
+  font-size: 0.82rem;
+  font-weight: 560;
+  padding: 7px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.cube-tab:hover {
+  border-color: #9eb3bf;
+  color: var(--ink);
+}
+
+.cube-tab.active {
+  border-color: rgba(15, 122, 95, 0.45);
+  background: rgba(15, 122, 95, 0.1);
+  color: var(--accent);
+}
+
+.cube-quote {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.quote-item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.quote-item .q-label {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.quote-item .q-value {
+  margin: 4px 0 0;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.quote-item .q-value.up { color: #c2410c; }
+.quote-item .q-value.down { color: #0f7a5f; }
+
+.cube-source {
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+}
+
 .cube-list {
   display: grid;
   gap: 14px;
+}
+
+@media (max-width: 820px) {
+  .cube-quote {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .cube {
@@ -584,11 +659,12 @@ a.btn {
   gap: 16px 18px;
 }
 
-.field {
+.field-actions {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
-  min-width: 0;
+  flex-wrap: wrap;
+  margin-bottom: 2px;
 }
 
 .field.full,

@@ -41,8 +41,13 @@
       <form id="config-form" class="config-form" autocomplete="off">
         <div class="field full">
           <label for="cfg-cookie">雪球 Cookie <span class="req">必填</span></label>
+          <div class="field-actions">
+            <button id="btn-xueqiu-login" class="btn primary sm" type="button">登录雪球获取 Cookie</button>
+            <button id="btn-xueqiu-cancel" class="btn ghost sm" type="button" hidden>取消登录</button>
+            <span id="login-status" class="meta-chip">未登录抓取</span>
+          </div>
           <textarea id="cfg-cookie" name="xueqiu_cookie" rows="3" placeholder="xq_a_token=...; u=..." required></textarea>
-          <p class="field-hint">登录雪球后从浏览器 Network 请求头复制完整 Cookie</p>
+          <p id="cookie-acquired" class="field-hint">点击上方按钮打开浏览器，完成登录后程序会自动写入 Cookie；也可手动粘贴。</p>
         </div>
 
         <div class="field full">
@@ -57,8 +62,13 @@
         </div>
 
         <div class="field">
-          <label for="cfg-interval">检查间隔（秒）</label>
+          <label for="cfg-interval">交易时段检查间隔（秒）</label>
           <input id="cfg-interval" name="check_interval" type="number" min="10" step="1" />
+        </div>
+
+        <div class="field">
+          <label for="cfg-off-interval">休市检查间隔（秒）</label>
+          <input id="cfg-off-interval" name="off_hours_interval" type="number" min="60" step="1" />
         </div>
 
         <div class="field">
@@ -67,8 +77,31 @@
         </div>
 
         <div class="field">
+          <label for="cfg-market-close">收盘时间（HH:MM）</label>
+          <input id="cfg-market-close" name="market_close" type="text" placeholder="15:00" />
+          <p class="field-hint">A股默认 15:00；含港股可设 16:00</p>
+        </div>
+
+        <div class="field">
+          <label for="cfg-preclose-min">收盘前加速窗口（分钟）</label>
+          <input id="cfg-preclose-min" name="pre_close_minutes" type="number" min="0" step="1" />
+        </div>
+
+        <div class="field">
+          <label for="cfg-preclose-interval">收盘前检查间隔（秒）</label>
+          <input id="cfg-preclose-interval" name="pre_close_interval" type="number" min="10" step="1" />
+        </div>
+
+        <div class="field">
           <label for="cfg-logfile">日志文件</label>
           <input id="cfg-logfile" name="log_file" type="text" placeholder="xueqiu_monitor.log" />
+        </div>
+
+        <div class="field check-field">
+          <label class="check-label" for="cfg-trading">
+            <input id="cfg-trading" name="trading_hours_only" type="checkbox" />
+            <span>启用交易时段智能调度</span>
+          </label>
         </div>
 
         <div class="field check-field">

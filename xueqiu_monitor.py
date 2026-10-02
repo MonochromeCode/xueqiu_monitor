@@ -18,6 +18,7 @@ Token 获取方式：
   3. 复制完整 Cookie 字符串，填入 .env 文件
 """
 
+import base64
 import json
 import os
 import re
@@ -69,7 +70,7 @@ MONITORED_CUBES: list[str] = (
     else ["ZH123456"]  # ← 直接改这里
 )
 
-# 检查间隔（秒），默认 5 分钟
+# 检查间隔（秒），默认 5 分钟（交易时段内生效）
 CHECK_INTERVAL: int = int(os.environ.get("CHECK_INTERVAL", "300"))
 
 # 仓位权重变动阈值（百分点），超过此值才触发通知，默认 1%
@@ -80,6 +81,19 @@ AT_ALL: bool = os.environ.get("AT_ALL", "false").lower() == "true"
 
 # 日志文件（空字符串=只输出到终端）
 LOG_FILE: str = os.environ.get("LOG_FILE", "xueqiu_monitor.log")
+
+# 是否启用交易时段智能调度（默认开启）
+TRADING_HOURS_ONLY: bool = os.environ.get("TRADING_HOURS_ONLY", "true").lower() == "true"
+
+# 非交易时段检查间隔（秒），默认 30 分钟
+OFF_HOURS_INTERVAL: int = int(os.environ.get("OFF_HOURS_INTERVAL", "1800"))
+
+# 收盘前加速窗口（分钟）与间隔（秒）
+PRE_CLOSE_MINUTES: int = int(os.environ.get("PRE_CLOSE_MINUTES", "15"))
+PRE_CLOSE_INTERVAL: int = int(os.environ.get("PRE_CLOSE_INTERVAL", "60"))
+
+# 下午交易结束时间（HH:MM），A股 15:00；含港股可设 16:00
+MARKET_CLOSE: str = os.environ.get("MARKET_CLOSE", "15:00")
 
 # ══════════════════════════════════════════════════════════════════
 #  📋  日志
@@ -97,6 +111,96 @@ logger = logging.getLogger(__name__)
 
 
 # ══════════════════════════════════════════════════════════════════
+#  ⏱  交易时段调度
+# ══════════════════════════════════════════════════════════════════
+
+def _parse_hhmm(value: str, default: tuple[int, int]) -> tuple[int, int]:
+    try:
+        hh, mm = value.strip().split(":")
+        return int(hh), int(mm)
+    except Exception:
+        return default
+
+
+def get_schedule_info(now: Optional[datetime] = None) -> dict[str, Any]:
+    """
+    返回当前调度状态：
+      in_trading / phase / interval / label
+    交易时段默认：工作日 09:15-11:35、12:55-MARKET_CLOSE（默认 15:00）
+    收盘前 PRE_CLOSE_MINUTES 使用更短间隔。
+    """
+    now = now or datetime.now()
+    base_interval = max(10, int(CHECK_INTERVAL or 300))
+    off_interval = max(base_interval, int(OFF_HOURS_INTERVAL or 1800))
+    pre_close_interval = max(10, int(PRE_CLOSE_INTERVAL or 60))
+    pre_close_minutes = max(0, int(PRE_CLOSE_MINUTES or 0))
+    close_h, close_m = _parse_hhmm(MARKET_CLOSE, (15, 0))
+
+    if not TRADING_HOURS_ONLY:
+        return {
+            "in_trading": True,
+            "phase": "always",
+            "interval": base_interval,
+            "label": "全天候",
+            "market_close": f"{close_h:02d}:{close_m:02d}",
+        }
+
+    # 周末
+    if now.weekday() >= 5:
+        return {
+            "in_trading": False,
+            "phase": "weekend",
+            "interval": off_interval,
+            "label": "周末休市",
+            "market_close": f"{close_h:02d}:{close_m:02d}",
+        }
+
+    minutes = now.hour * 60 + now.minute
+    morning = (9 * 60 + 15, 11 * 60 + 35)          # 09:15-11:35
+    afternoon_start = 12 * 60 + 55                   # 12:55
+    close_min = close_h * 60 + close_m
+    afternoon_end = close_min + 5                    # 结束后缓冲 5 分钟
+    pre_close_start = max(afternoon_start, close_min - pre_close_minutes)
+
+    if morning[0] <= minutes <= morning[1]:
+        return {
+            "in_trading": True,
+            "phase": "morning",
+            "interval": base_interval,
+            "label": "上午盘",
+            "market_close": f"{close_h:02d}:{close_m:02d}",
+        }
+    if afternoon_start <= minutes <= afternoon_end:
+        if pre_close_minutes and minutes >= pre_close_start:
+            return {
+                "in_trading": True,
+                "phase": "pre_close",
+                "interval": min(base_interval, pre_close_interval),
+                "label": "收盘前加速",
+                "market_close": f"{close_h:02d}:{close_m:02d}",
+            }
+        return {
+            "in_trading": True,
+            "phase": "afternoon",
+            "interval": base_interval,
+            "label": "下午盘",
+            "market_close": f"{close_h:02d}:{close_m:02d}",
+        }
+
+    return {
+        "in_trading": False,
+        "phase": "off",
+        "interval": off_interval,
+        "label": "非交易时段",
+        "market_close": f"{close_h:02d}:{close_m:02d}",
+    }
+
+
+def next_check_interval(now: Optional[datetime] = None) -> int:
+    return int(get_schedule_info(now)["interval"])
+
+
+# ══════════════════════════════════════════════════════════════════
 #  🌐  雪球 API 客户端
 # ══════════════════════════════════════════════════════════════════
 _BASE_URL   = "https://xueqiu.com"
@@ -104,8 +208,38 @@ _STOCK_BASE = "https://stock.xueqiu.com"
 
 
 def _alert_cookie_expired():
-    """Cookie 失效时输出高优先级日志"""
+    """Cookie 失效时输出高优先级日志（带冷却，避免一轮降级刷屏）。"""
+    now = time.time()
+    last = getattr(_alert_cookie_expired, "_last", 0.0)
+    if now - last < 60:
+        return
+    _alert_cookie_expired._last = now
     logger.critical("雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！")
+
+
+def _apply_cookie_to_session(session: requests.Session, cookie: str) -> None:
+    """
+    将 Cookie 字符串写入 session cookie jar。
+    注意：不要用 headers['Cookie']，雪球接口会返回 400016。
+    """
+    session.headers.pop("Cookie", None)
+    # 清掉旧的雪球登录相关 cookie，避免串台
+    try:
+        for c in list(session.cookies):
+            if "xueqiu.com" in (c.domain or ""):
+                session.cookies.clear(c.domain, c.path, c.name)
+    except Exception:
+        pass
+
+    for part in (cookie or "").split(";"):
+        part = part.strip()
+        if not part or "=" not in part:
+            continue
+        name, value = part.split("=", 1)
+        name, value = name.strip(), value.strip()
+        if not name:
+            continue
+        session.cookies.set(name, value, domain=".xueqiu.com", path="/")
 
 
 # ─────────────────────────────────────────────
@@ -114,43 +248,101 @@ def _alert_cookie_expired():
 
 
 def _get_token_expiry(cookie: str) -> Optional[float]:
-    """从 xq_a_token 中解析过期时间戳（秒）"""
+    """从 xq_a_token / xq_id_token 中解析过期时间戳（秒）"""
     m = re.search(r'xq_a_token=([^;]+)', cookie)
-    if not m:
-        return None
-    token = m.group(1).strip()
-    if '_' in token:
-        parts = token.rsplit('_', 1)
+    if m:
+        token = m.group(1).strip()
+        if '_' in token:
+            parts = token.rsplit('_', 1)
+            try:
+                ts = int(parts[1])
+                if ts > 1893456000000:  # 毫秒 → 秒
+                    ts /= 1000
+                if 1672531200 <= ts <= 1893456000:  # 2023 ~ 2030
+                    return float(ts)
+            except ValueError:
+                pass
+
+    # 回退：xq_id_token JWT 的 exp
+    payload = _parse_xq_id_token(cookie)
+    if payload and payload.get("exp"):
         try:
-            ts = int(parts[1])
-            if ts > 1893456000000:  # 毫秒 → 秒
-                ts /= 1000
-            if 1672531200 <= ts <= 1893456000:  # 2023 ~ 2030
-                return float(ts)
-        except ValueError:
+            return float(payload["exp"])
+        except (TypeError, ValueError):
             pass
     return None
 
 
-class DingTalkNotifier:
-    pass
+def _parse_xq_id_token(cookie: str) -> Optional[dict]:
+    """解析 Cookie 中 xq_id_token 的 JWT payload（不校验签名）。"""
+    m = re.search(r'xq_id_token=([^;]+)', cookie or "")
+    if not m:
+        return None
+    token = m.group(1).strip()
+    parts = token.split(".")
+    if len(parts) < 2:
+        return None
+    try:
+        padded = parts[1] + "=" * (-len(parts[1]) % 4)
+        return json.loads(base64.urlsafe_b64decode(padded.encode("ascii")))
+    except Exception:
+        return None
 
 
-def _check_token_expiry(state: dict, notifier: DingTalkNotifier) -> bool:
+def _get_token_issued_at(cookie: str) -> Optional[float]:
+    """从 xq_id_token 解析签发/获取时间（秒）。优先 ctm，其次 iat。"""
+    payload = _parse_xq_id_token(cookie)
+    if not payload:
+        return None
+    ts = payload.get("ctm")
+    if ts is None:
+        ts = payload.get("iat")
+    if ts is None:
+        return None
+    try:
+        ts = float(ts)
+    except (TypeError, ValueError):
+        return None
+    if ts > 1e12:  # 毫秒
+        ts /= 1000.0
+    if ts < 1e9:
+        return None
+    return ts
+
+
+def _check_token_expiry(state: dict, notifier: Any) -> bool:
     """Token 过期前 1 天发送钉钉提醒。返回 True 表示 state 已变更。"""
     token_hash = hashlib.md5(XUEQIU_COOKIE.encode()).hexdigest()
     token_state = state.setdefault("_token", {})
+    changed = False
 
-    # token 被用户更新 → 重置通知状态
+    # token 被用户更新 → 重置通知状态，并记录新获取时间
     if token_state.get("hash") and token_state["hash"] != token_hash:
         token_state.clear()
-    token_state["hash"] = token_hash
+        changed = True
+    if token_state.get("hash") != token_hash:
+        token_state["hash"] = token_hash
+        changed = True
+
+    issued = _get_token_issued_at(XUEQIU_COOKIE)
+    if issued is not None and token_state.get("issued_at") != issued:
+        token_state["issued_at"] = issued
+        changed = True
+
+    if not token_state.get("acquired_at"):
+        if issued is not None:
+            token_state["acquired_at"] = datetime.fromtimestamp(issued).isoformat(timespec="seconds")
+        else:
+            token_state["acquired_at"] = datetime.now().isoformat(timespec="seconds")
+        changed = True
 
     expiry = _get_token_expiry(XUEQIU_COOKIE)
     if expiry is None:
-        return False
+        return changed
 
-    token_state["expiry"] = expiry
+    if token_state.get("expiry") != expiry:
+        token_state["expiry"] = expiry
+        changed = True
     remaining = expiry - time.time()
     remaining_hours = remaining / 3600
 
@@ -165,7 +357,7 @@ def _check_token_expiry(state: dict, notifier: DingTalkNotifier) -> bool:
         if ok:
             token_state["notified_expiry"] = True
             return True
-    return False
+    return changed
 
 
 class XueQiuClient:
@@ -189,10 +381,14 @@ class XueQiuClient:
             "Referer": "https://xueqiu.com/",
             "Accept": "application/json, text/plain, */*",
             "Accept-Language": "zh-CN,zh;q=0.9",
-            "Cookie": cookie,
         })
+        _apply_cookie_to_session(self.session, cookie)
         self._init_session()
         atexit.register(self.session.close)
+
+    def set_cookie(self, cookie: str) -> None:
+        """运行时更新 Cookie。"""
+        _apply_cookie_to_session(self.session, cookie)
 
     def _init_session(self):
         try:
@@ -203,12 +399,32 @@ class XueQiuClient:
     def _get(self, url: str, params: dict = None) -> Optional[dict]:
         try:
             resp = self.session.get(url, params=params, timeout=15)
+            # 先尝试解析业务错误码（雪球未登录常返回 HTTP 400 + 400016）
+            data = None
+            try:
+                data = resp.json()
+            except Exception:
+                data = None
+            if isinstance(data, dict):
+                err = str(data.get("error_code") or "")
+                if err == "400016":
+                    _alert_cookie_expired()
+                    logger.error(f"HTTP {resp.status_code} error_code={err}: {url}")
+                    return None
+                # stock.xueqiu.com 的 403 常见于风控，不一定是 Cookie 失效
+                if resp.status_code in (401, 403) and "xueqiu.com" in url and "stock.xueqiu.com" not in url:
+                    _alert_cookie_expired()
+                    logger.error(f"HTTP {resp.status_code} error_code={err}: {url}")
+                    return None
+            if resp.status_code in (401, 403) and "stock.xueqiu.com" in url:
+                logger.error(f"HTTP {resp.status_code}: {url}")
+                return None
             resp.raise_for_status()
-            return resp.json()
+            return data if isinstance(data, dict) else resp.json()
         except requests.exceptions.HTTPError as e:
             status = e.response.status_code
             logger.error(f"HTTP {status}: {url}")
-            if status in (401, 403):
+            if status in (401, 403) and "stock.xueqiu.com" not in url:
                 _alert_cookie_expired()
         except Exception as e:
             logger.error(f"请求异常: {url} -> {e}")
@@ -238,6 +454,10 @@ class XueQiuClient:
                 {"cube_symbol": self.portfolio_id, "count": 1, "page": 1}
             )
             source = "history"
+
+        if data is None:
+            logger.warning(f"[{self.portfolio_id}] 持仓接口全部失败，返回空列表")
+            return []
 
         positions = []
         try:
@@ -275,6 +495,53 @@ class XueQiuClient:
 
         logger.info(f"[{self.portfolio_id}] 当前持仓 {len(positions)} 只 ({source})")
         return positions
+
+    def get_cube_quote(self) -> Optional[dict]:
+        """拉取雪球原组合行情摘要（净值/涨跌等）。"""
+        data = self._get(
+            f"{_BASE_URL}/cubes/quote.json",
+            {"code": self.portfolio_id},
+        )
+        if data is None:
+            return None
+
+        raw = data.get(self.portfolio_id)
+        if raw is None:
+            raw = data.get("data") or data.get("quote")
+        if isinstance(raw, list) and raw:
+            raw = raw[0]
+        if not isinstance(raw, dict):
+            # 有些响应直接把字段放顶层
+            if "net_value" in data or "name" in data:
+                raw = data
+            else:
+                return None
+
+        def _num(key: str) -> Optional[float]:
+            val = raw.get(key)
+            if val is None or val == "":
+                return None
+            try:
+                return float(val)
+            except (TypeError, ValueError):
+                return None
+
+        return {
+            "symbol": str(raw.get("symbol") or self.portfolio_id).upper(),
+            "name": raw.get("name") or self.portfolio_id,
+            "net_value": _num("net_value"),
+            # 雪球 quote 接口的 gain 字段已是百分点（如 0.35 表示 +0.35%）
+            "daily_gain": _num("daily_gain"),
+            "monthly_gain": _num("monthly_gain"),
+            "total_gain": _num("total_gain"),
+            "annualized_gain_rate": _num("annualized_gain_rate")
+            if raw.get("annualized_gain_rate") is not None
+            else _num("annualized_gain"),
+            "gain_unit": "percent",
+            "follower_count": raw.get("follower_count"),
+            "market": raw.get("market"),
+            "updated_at": datetime.now().isoformat(timespec="seconds"),
+        }
 
     def get_latest_rebalancing(self) -> Optional[dict]:
         """获取最新调仓记录"""
@@ -397,9 +664,12 @@ def _append_change_history(
     changes: list[dict],
     rb_id,
     title: str,
+    positions: Optional[list[dict]] = None,
 ) -> None:
     """记录已成功推送钉钉的持仓变动，供前端实时展示。"""
     now = datetime.now()
+    total_weight = sum(float(p.get("weight") or 0) for p in (positions or []))
+    cash = max(0.0, 100.0 - total_weight)
     event = {
         "id": f"{cube_id}-{rb_id or 'na'}-{int(now.timestamp() * 1000)}",
         "cube_id": cube_id,
@@ -408,6 +678,8 @@ def _append_change_history(
         "time": now.isoformat(timespec="seconds"),
         "title": title,
         "notified": True,
+        "total_weight": round(total_weight, 2),
+        "cash": round(cash, 2),
         "changes": [
             {
                 "type": c.get("type"),
@@ -507,7 +779,12 @@ def detect_changes(old: list[dict], new: list[dict]) -> list[dict]:
 _TYPE_EMOJI = {"新增": "🟢", "加仓": "📈", "减仓": "📉", "卖出": "🔴"}
 
 
-def build_markdown(cube_id: str, nav_info: dict, changes: list[dict]) -> tuple[str, str]:
+def build_markdown(
+    cube_id: str,
+    nav_info: dict,
+    changes: list[dict],
+    positions: Optional[list[dict]] = None,
+) -> tuple[str, str]:
     """
     构建钉钉 Markdown 消息。
     返回 (title, content)
@@ -517,9 +794,15 @@ def build_markdown(cube_id: str, nav_info: dict, changes: list[dict]) -> tuple[s
 
     title = f"雪球组合变动 · {name}"
 
+    total_weight = 0.0
+    if positions:
+        total_weight = sum(float(p.get("weight") or 0) for p in positions)
+    cash = max(0.0, 100.0 - total_weight)
+
     lines = [
         f"## 📈 {name} 持仓变动",
         f"> 组合代码：**{cube_id}**　｜　检测时间：{now}",
+        f"> 持仓合计：**{total_weight:.1f}%**　｜　现金/未分配约：**{cash:.1f}%**",
         "",
         "### 📋 变动明细",
     ]
@@ -603,7 +886,7 @@ def monitor_once(client: XueQiuClient, notifier: DingTalkNotifier):
 
             if changes:
                 logger.info(f"[{cube_id}] 检测到 {len(changes)} 项变动，准备发送通知")
-                title, content = build_markdown(cube_id, nav_info, changes)
+                title, content = build_markdown(cube_id, nav_info, changes, positions=new_positions)
                 ok = notifier.send_markdown(title, content, cube_id=cube_id)
                 if ok:
                     logger.info(f"[{cube_id}] 通知发送成功")
@@ -616,6 +899,7 @@ def monitor_once(client: XueQiuClient, notifier: DingTalkNotifier):
                         changes=changes,
                         rb_id=rb_id,
                         title=title,
+                        positions=new_positions,
                     )
                     state_changed = True
                 else:
@@ -677,7 +961,9 @@ def main():
         sys.exit(1)
 
     print(f"\n📌 监控组合: {', '.join(MONITORED_CUBES)}")
-    print(f"⏱  检查间隔: {CHECK_INTERVAL} 秒")
+    sched = get_schedule_info()
+    print(f"⏱  交易时段间隔: {CHECK_INTERVAL} 秒｜休市间隔: {OFF_HOURS_INTERVAL} 秒")
+    print(f"📅 当前时段: {sched['label']}（下次间隔 {sched['interval']} 秒）")
     print(f"📊 仓位变动阈值: ≥ {WEIGHT_CHANGE_THRESHOLD}%")
     print(f"📅 启动时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
 
@@ -689,12 +975,15 @@ def main():
     logger.info("首次检查...")
     monitor_once(client, notifier)
 
-    # 定时循环
+    # 定时循环（智能调度）
     try:
         while True:
-            next_run = datetime.now().strftime("%H:%M:%S")
-            logger.info(f"等待 {CHECK_INTERVAL} 秒后再次检查（下次约 {next_run}）...")
-            time.sleep(CHECK_INTERVAL)
+            sched = get_schedule_info()
+            interval = int(sched["interval"])
+            logger.info(
+                f"当前时段「{sched['label']}」，等待 {interval} 秒后再次检查..."
+            )
+            time.sleep(interval)
             monitor_once(client, notifier)
     except KeyboardInterrupt:
         logger.info("监控已手动停止")

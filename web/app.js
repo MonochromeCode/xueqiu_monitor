@@ -3,7 +3,9 @@ const $ = (sel) => document.querySelector(sel);
 const els = {
   stats: $("#stats"),
   cubes: $("#cubes"),
+  cubeTabs: $("#cube-tabs"),
   cubeCount: $("#cube-count"),
+  btnCubeLive: $("#btn-cube-live"),
   changes: $("#changes"),
   changesCount: $("#changes-count"),
   changesLive: $("#changes-live"),
@@ -11,7 +13,9 @@ const els = {
   serverTime: $("#server-time"),
   btnRefresh: $("#btn-refresh"),
   btnCheck: $("#btn-check"),
+  btnLogin: $("#btn-xueqiu-login"),
   btnLogRefresh: $("#btn-log-refresh"),
+  btnLogClear: $("#btn-log-clear"),
   toast: $("#toast"),
   logLive: $("#log-live"),
 };
@@ -23,12 +27,18 @@ let lastLogText = "";
 let lastLogMtime = null;
 let lastStatsHtml = "";
 let lastCubesHtml = "";
+let lastCubeTabsHtml = "";
 let lastCubeCount = "";
 let lastChangesHtml = "";
 let lastChangesCount = "";
 let lastChangeIds = "";
 let statusInFlight = false;
 let logsInFlight = false;
+let liveInFlight = false;
+let latestCubes = [];
+let latestChanges = [];
+let selectedCubeId = localStorage.getItem("selectedCubeId") || "";
+let liveCubeCache = {};
 
 const LOG_POLL_MS = 1000;
 const STATUS_POLL_MS = 1000;
@@ -99,14 +109,16 @@ function isNearBottom(el, threshold = 48) {
 }
 
 function renderStats(data) {
-  const intervalMin = Math.round((data.check_interval || 0) / 60);
   const checking = data.check?.running;
-  const tokenHint =
-    data.token?.remaining_hours != null
-      ? `剩余 ${data.token.remaining_hours} 小时`
-      : data.token?.expiry
-        ? `过期 ${formatTime(data.token.expiry)}`
-        : "无法解析过期时间";
+  const acquired = data.token?.issued_at || data.token?.acquired_at;
+  const parts = [];
+  if (acquired) parts.push(`获取 ${formatTime(acquired)}`);
+  if (data.token?.remaining_hours != null) {
+    parts.push(`剩余 ${data.token.remaining_hours} 小时`);
+  } else if (data.token?.expiry) {
+    parts.push(`过期 ${formatTime(data.token.expiry)}`);
+  }
+  const tokenHint = parts.length ? parts.join(" · ") : "无法解析获取/过期时间";
 
   const html = `
     <article class="stat">
@@ -115,9 +127,9 @@ function renderStats(data) {
       <p class="stat-hint">Webhook ${data.webhook_configured ? "已配置" : "未配置"} · Cookie ${escapeHtml(data.cookie_masked || "—")}</p>
     </article>
     <article class="stat">
-      <p class="stat-label">检查间隔</p>
-      <p class="stat-value">${data.check_interval || "—"}<span style="font-size:.85rem;font-weight:500;color:var(--ink-soft)"> 秒</span></p>
-      <p class="stat-hint">约 ${intervalMin || "—"} 分钟 · 阈值 ≥ ${data.weight_threshold}%</p>
+      <p class="stat-label">调度时段</p>
+      <p class="stat-value">${escapeHtml(data.schedule?.label || "—")}</p>
+      <p class="stat-hint">下次间隔 ${data.schedule?.interval ?? data.check_interval ?? "—"} 秒 · 盘中 ${data.check_interval || "—"}s</p>
     </article>
     <article class="stat">
       <p class="stat-label">Cookie</p>
@@ -141,13 +153,129 @@ function renderStats(data) {
   els.serverTime.textContent = `服务器 ${formatTime(data.server_time)}`;
 }
 
+function formatPct(ratio, { unit = "ratio" } = {}) {
+  if (ratio == null || Number.isNaN(Number(ratio))) return "—";
+  const pct = unit === "percent" ? Number(ratio) : Number(ratio) * 100;
+  const sign = pct > 0 ? "+" : "";
+  return `${sign}${pct.toFixed(2)}%`;
+}
+
+function gainClass(ratio) {
+  const n = Number(ratio);
+  if (Number.isNaN(n) || n === 0) return "";
+  return n > 0 ? "up" : "down";
+}
+
+function ensureSelectedCube(cubes) {
+  const ids = (cubes || []).map((c) => c.id);
+  if (!ids.length) {
+    selectedCubeId = "";
+    return;
+  }
+  if (!selectedCubeId || !ids.includes(selectedCubeId)) {
+    selectedCubeId = ids[0];
+    localStorage.setItem("selectedCubeId", selectedCubeId);
+  }
+}
+
+function renderCubeTabs(cubes) {
+  if (!els.cubeTabs) return;
+  if (!cubes.length) {
+    const empty = "";
+    if (empty !== lastCubeTabsHtml) {
+      lastCubeTabsHtml = empty;
+      els.cubeTabs.innerHTML = empty;
+    }
+    return;
+  }
+  const html = cubes
+    .map((cube) => {
+      const active = cube.id === selectedCubeId ? "active" : "";
+      const label = cube.name && cube.name !== cube.id ? `${cube.name}` : cube.id;
+      return `<button type="button" class="cube-tab ${active}" data-cube-id="${escapeHtml(cube.id)}" role="tab" aria-selected="${cube.id === selectedCubeId}">${escapeHtml(label)} <span class="meta-chip" style="margin-left:6px">${escapeHtml(cube.id)}</span></button>`;
+    })
+    .join("");
+  if (html !== lastCubeTabsHtml) {
+    lastCubeTabsHtml = html;
+    els.cubeTabs.innerHTML = html;
+  }
+}
+
+function renderPositions(cube) {
+  const positions = cube.positions || [];
+  const maxW = Math.max(...positions.map((p) => Number(p.weight) || 0), 1);
+  const total = Number(cube.total_weight || 0);
+  const cash = Number(cube.cash != null ? cube.cash : Math.max(0, 100 - total));
+  if (!positions.length) {
+    return `<div class="empty">尚无持仓快照，可点「查询原组合」从雪球拉取，或「立即检查」</div>`;
+  }
+  return `<div class="positions">${positions
+    .map((p) => {
+      const w = Number(p.weight) || 0;
+      const pct = Math.max(4, (w / maxW) * 100);
+      const price = Number(p.price) || 0;
+      return `
+        <div class="pos">
+          <div class="pos-name">
+            <strong>${escapeHtml(p.name || p.symbol)}</strong>
+            <span>${escapeHtml(p.symbol || "")}${price ? ` · ¥${price.toFixed(2)}` : ""}</span>
+          </div>
+          <div class="bar"><i style="width:${pct}%"></i></div>
+          <div class="pos-weight">${w.toFixed(1)}%</div>
+        </div>`;
+    })
+    .join("")}${
+      cash >= 0.1
+        ? `<div class="pos cash-row">
+            <div class="pos-name"><strong>现金/未分配</strong><span>剩余仓位</span></div>
+            <div class="bar"><i class="cash" style="width:${Math.max(4, (cash / maxW) * 100)}%"></i></div>
+            <div class="pos-weight">${cash.toFixed(1)}%</div>
+          </div>`
+        : ""
+    }</div>`;
+}
+
+function renderQuote(quote) {
+  if (!quote) return "";
+  const unit = quote.gain_unit === "percent" ? "percent" : "ratio";
+  return `
+    <div class="cube-quote">
+      <div class="quote-item">
+        <p class="q-label">单位净值</p>
+        <p class="q-value">${quote.net_value != null ? Number(quote.net_value).toFixed(4) : "—"}</p>
+      </div>
+      <div class="quote-item">
+        <p class="q-label">日涨跌</p>
+        <p class="q-value ${gainClass(quote.daily_gain)}">${formatPct(quote.daily_gain, { unit })}</p>
+      </div>
+      <div class="quote-item">
+        <p class="q-label">总收益</p>
+        <p class="q-value ${gainClass(quote.total_gain)}">${formatPct(quote.total_gain, { unit })}</p>
+      </div>
+      <div class="quote-item">
+        <p class="q-label">年化</p>
+        <p class="q-value ${gainClass(quote.annualized_gain_rate)}">${formatPct(quote.annualized_gain_rate, { unit })}</p>
+      </div>
+    </div>`;
+}
+
 function renderCubes(cubes) {
-  const countText = `${cubes.length} 个`;
+  latestCubes = cubes || [];
+  ensureSelectedCube(latestCubes);
+
+  const countText = `${latestCubes.length} 个`;
   if (countText !== lastCubeCount) {
     lastCubeCount = countText;
     els.cubeCount.textContent = countText;
   }
-  if (!cubes.length) {
+
+  renderCubeTabs(latestCubes);
+
+  if (els.btnCubeLive) {
+    els.btnCubeLive.disabled = !selectedCubeId || liveInFlight;
+  }
+
+  if (!latestCubes.length) {
     const empty = `<div class="empty">暂无监控组合，请到<a href="/config">配置页</a>填写监控组合</div>`;
     if (empty !== lastCubesHtml) {
       lastCubesHtml = empty;
@@ -156,63 +284,80 @@ function renderCubes(cubes) {
     return;
   }
 
-  const html = cubes
-    .map((cube) => {
-      const maxW = Math.max(...cube.positions.map((p) => Number(p.weight) || 0), 1);
-      const total = Number(cube.total_weight || 0);
-      const cash = Math.max(0, 100 - total);
-      const xqUrl = `https://xueqiu.com/P/${encodeURIComponent(cube.id)}`;
-      const rows =
-        cube.positions.length === 0
-          ? `<div class="empty">尚无持仓快照，可点击「立即检查」拉取</div>`
-          : `<div class="positions">${cube.positions
-              .map((p) => {
-                const w = Number(p.weight) || 0;
-                const pct = Math.max(4, (w / maxW) * 100);
-                const price = Number(p.price) || 0;
-                return `
-                  <div class="pos">
-                    <div class="pos-name">
-                      <strong>${escapeHtml(p.name || p.symbol)}</strong>
-                      <span>${escapeHtml(p.symbol || "")}${price ? ` · ¥${price.toFixed(2)}` : ""}</span>
-                    </div>
-                    <div class="bar"><i style="width:${pct}%"></i></div>
-                    <div class="pos-weight">${w.toFixed(1)}%</div>
-                  </div>`;
-              })
-              .join("")}${
-                cash >= 0.1
-                  ? `<div class="pos cash-row">
-                      <div class="pos-name"><strong>现金/未分配</strong><span>剩余仓位</span></div>
-                      <div class="bar"><i class="cash" style="width:${Math.max(4, (cash / maxW) * 100)}%"></i></div>
-                      <div class="pos-weight">${cash.toFixed(1)}%</div>
-                    </div>`
-                  : ""
-              }</div>`;
+  const cube =
+    liveCubeCache[selectedCubeId] ||
+    latestCubes.find((c) => c.id === selectedCubeId) ||
+    latestCubes[0];
+  const total = Number(cube.total_weight || 0);
+  const cash = Number(cube.cash != null ? cube.cash : Math.max(0, 100 - total));
+  const xqUrl = `https://xueqiu.com/P/${encodeURIComponent(cube.id)}`;
+  const sourceHint = cube.source === "live"
+    ? `雪球实时 · ${formatTime(cube.live_at || cube.quote?.updated_at)}`
+    : `本地快照 · 上次检查 ${relativeTime(cube.last_check)}`;
 
-      return `
-        <article class="cube">
-          <div class="cube-head">
-            <div>
-              <h3 class="cube-title">${escapeHtml(cube.name || cube.id)}</h3>
-              <p class="cube-id">
-                <a href="${xqUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(cube.id)}</a>
-                · ${cube.position_count} 只 · 合计 ${total.toFixed(1)}%
-              </p>
-            </div>
-            <div class="cube-meta">
-              <div title="${escapeHtml(formatTime(cube.last_check))}">上次检查 ${relativeTime(cube.last_check)}</div>
-              <div>调仓 ID ${cube.last_rb_id ?? "—"}</div>
-            </div>
-          </div>
-          ${rows}
-        </article>`;
-    })
-    .join("");
+  const html = `
+    <article class="cube">
+      <div class="cube-head">
+        <div>
+          <h3 class="cube-title">${escapeHtml(cube.name || cube.id)}</h3>
+          <p class="cube-id">
+            <a href="${xqUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(cube.id)}</a>
+            · ${cube.position_count || 0} 只 · 持仓 ${total.toFixed(1)}% · 现金 ${cash.toFixed(1)}%
+          </p>
+        </div>
+        <div class="cube-meta">
+          <div title="${escapeHtml(formatTime(cube.last_check))}">上次检查 ${relativeTime(cube.last_check)}</div>
+          <div>调仓 ID ${cube.last_rb_id ?? "—"}</div>
+        </div>
+      </div>
+      <p class="cube-source">${escapeHtml(sourceHint)}${cube.warning ? ` · ${escapeHtml(cube.warning)}` : ""}</p>
+      ${renderQuote(cube.quote)}
+      ${renderPositions(cube)}
+    </article>`;
 
   if (html !== lastCubesHtml) {
     lastCubesHtml = html;
     els.cubes.innerHTML = html;
+  }
+}
+
+function selectCube(cubeId) {
+  if (!cubeId || cubeId === selectedCubeId) return;
+  selectedCubeId = cubeId;
+  localStorage.setItem("selectedCubeId", selectedCubeId);
+  lastCubeTabsHtml = "";
+  lastCubesHtml = "";
+  lastChangesHtml = "";
+  lastChangeIds = "";
+  renderCubes(latestCubes);
+  renderChanges(latestChanges);
+}
+
+async function fetchCubeLive() {
+  if (!selectedCubeId || liveInFlight) return;
+  liveInFlight = true;
+  if (els.btnCubeLive) {
+    els.btnCubeLive.disabled = true;
+    els.btnCubeLive.textContent = "查询中…";
+  }
+  try {
+    const data = await api(`/api/cubes/${encodeURIComponent(selectedCubeId)}/live`);
+    liveCubeCache[selectedCubeId] = data;
+    const idx = latestCubes.findIndex((c) => c.id === selectedCubeId);
+    if (idx >= 0) {
+      latestCubes[idx] = { ...latestCubes[idx], ...data };
+    }
+    lastCubesHtml = "";
+    renderCubes(latestCubes);
+    showToast(data.warning || `已更新 ${selectedCubeId} 原组合数据`);
+  } catch (e) {
+    showToast(e.message || "查询失败");
+  } finally {
+    liveInFlight = false;
+    if (els.btnCubeLive) {
+      els.btnCubeLive.disabled = !selectedCubeId;
+      els.btnCubeLive.textContent = "查询原组合";
+    }
   }
 }
 
@@ -251,22 +396,34 @@ function changeTypeClass(type) {
 }
 
 function renderChanges(events) {
-  const list = Array.isArray(events) ? events : [];
-  const countText = `${list.length} 条`;
+  latestChanges = Array.isArray(events) ? events : latestChanges;
+  const all = Array.isArray(events) ? events : latestChanges;
+  const list = selectedCubeId
+    ? all.filter((e) => (e.cube_id || "").toUpperCase() === selectedCubeId)
+    : all;
+  const countText = selectedCubeId
+    ? `${list.length}/${all.length}`
+    : `${list.length} 条`;
   if (countText !== lastChangesCount) {
     lastChangesCount = countText;
     if (els.changesCount) els.changesCount.textContent = countText;
   }
+  if (els.changesLive) {
+    els.changesLive.textContent = selectedCubeId
+      ? `当前组合 ${selectedCubeId}`
+      : "与钉钉同步";
+  }
 
-  const ids = list.map((e) => e.id).join("|");
+  const ids = `${selectedCubeId}|` + list.map((e) => e.id).join("|");
   if (ids === lastChangeIds && lastChangesHtml) {
-    if (els.changesLive) els.changesLive.textContent = "与钉钉同步";
     return;
   }
   lastChangeIds = ids;
 
   if (!list.length) {
-    const empty = `<div class="empty">暂无持仓变动。检测到变动并成功推送钉钉后，会在这里实时显示（与钉钉消息同步）。</div>`;
+    const empty = selectedCubeId
+      ? `<div class="empty">组合 ${escapeHtml(selectedCubeId)} 暂无变动记录。可切换其他组合，或等待钉钉推送后同步显示。</div>`
+      : `<div class="empty">暂无持仓变动。检测到变动并成功推送钉钉后，会在这里实时显示（与钉钉消息同步）。</div>`;
     if (empty !== lastChangesHtml) {
       lastChangesHtml = empty;
       els.changes.innerHTML = empty;
@@ -297,7 +454,7 @@ function renderChanges(events) {
           <div class="change-head">
             <div>
               <h3 class="change-title">${escapeHtml(ev.cube_name || ev.cube_id || "组合变动")}</h3>
-              <p class="change-sub">${escapeHtml(ev.cube_id || "")}${ev.rb_id != null ? ` · 调仓 ${ev.rb_id}` : ""} · 已推送钉钉</p>
+              <p class="change-sub">${escapeHtml(ev.cube_id || "")}${ev.rb_id != null ? ` · 调仓 ${ev.rb_id}` : ""} · 已推送钉钉${ev.cash != null ? ` · 现金 ${Number(ev.cash).toFixed(1)}%` : ""}</p>
             </div>
             <div class="change-time" title="${escapeHtml(formatTime(ev.time))}">${relativeTime(ev.time)}</div>
           </div>
@@ -310,7 +467,6 @@ function renderChanges(events) {
     lastChangesHtml = html;
     els.changes.innerHTML = html;
   }
-  if (els.changesLive) els.changesLive.textContent = "与钉钉同步";
 }
 
 async function loadStatus() {
@@ -319,8 +475,13 @@ async function loadStatus() {
   try {
     const data = await api("/api/status");
     renderStats(data);
-    renderCubes(data.cubes || []);
-    renderChanges(data.recent_changes || []);
+    const cubes = (data.cubes || []).map((c) => {
+      const live = liveCubeCache[c.id];
+      return live ? { ...c, ...live, positions: live.positions?.length ? live.positions : c.positions } : c;
+    });
+    latestChanges = data.recent_changes || [];
+    renderCubes(cubes);
+    renderChanges(latestChanges);
     return data;
   } finally {
     statusInFlight = false;
@@ -415,7 +576,72 @@ function stopPolling() {
 
 els.btnRefresh.addEventListener("click", refreshAll);
 els.btnLogRefresh.addEventListener("click", () => loadLogs().catch((e) => showToast(e.message)));
+
+async function clearLogs() {
+  if (!window.confirm("确定清空运行日志？此操作不可恢复。")) return;
+  try {
+    if (els.btnLogClear) els.btnLogClear.disabled = true;
+    const res = await api("/api/logs/clear", { method: "POST" });
+    lastLogText = "";
+    lastLogMtime = null;
+    showToast(res.message || "日志已清空");
+    await loadLogs();
+  } catch (e) {
+    showToast(e.message || "清空失败");
+  } finally {
+    if (els.btnLogClear) els.btnLogClear.disabled = false;
+  }
+}
+if (els.btnLogClear) els.btnLogClear.addEventListener("click", clearLogs);
 els.btnCheck.addEventListener("click", triggerCheck);
+
+if (els.cubeTabs) {
+  els.cubeTabs.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-cube-id]");
+    if (!btn) return;
+    selectCube(btn.getAttribute("data-cube-id"));
+  });
+}
+if (els.btnCubeLive) els.btnCubeLive.addEventListener("click", fetchCubeLive);
+
+let loginPollTimer = null;
+async function startXueqiuLogin() {
+  try {
+    if (els.btnLogin) els.btnLogin.disabled = true;
+    const res = await api("/api/xueqiu/login/start", { method: "POST" });
+    showToast(res.login?.message || "已打开登录窗口");
+    clearInterval(loginPollTimer);
+    loginPollTimer = setInterval(async () => {
+      try {
+        const login = await api("/api/xueqiu/login/status");
+        if (login.status === "running") {
+          if (els.btnLogin) els.btnLogin.textContent = "登录中…";
+          return;
+        }
+        clearInterval(loginPollTimer);
+        if (els.btnLogin) {
+          els.btnLogin.disabled = false;
+          els.btnLogin.textContent = "登录雪球";
+        }
+        if (login.status === "success") {
+          showToast("Cookie 已自动写入");
+          await refreshAll();
+        } else if (login.message) {
+          showToast(login.message);
+        }
+      } catch (_) {
+        /* ignore */
+      }
+    }, 1000);
+  } catch (e) {
+    if (els.btnLogin) {
+      els.btnLogin.disabled = false;
+      els.btnLogin.textContent = "登录雪球";
+    }
+    showToast(e.message || "无法启动登录");
+  }
+}
+if (els.btnLogin) els.btnLogin.addEventListener("click", startXueqiuLogin);
 
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
