@@ -786,3 +786,14 @@
 2026-10-02 20:34:07,142 [INFO] 组合名称: ZH3605259
 2026-10-02 20:34:07,142 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
 2026-10-02 20:34:09,143 [INFO] 等待 30 秒后再次检查（下次约 20:34:09）...
+2026-10-02 20:34:25,750 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:34:25,900 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:34:26,012 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:34:26,012 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:34:26,189 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:34:26,189 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:34:26,189 [INFO] 持仓数量: 0 只
+2026-10-02 20:34:26,189 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:34:26,354 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:34:26,354 [INFO] 组合名称: ZH3605259
+2026-10-02 20:34:26,354 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
