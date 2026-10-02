@@ -37,7 +37,32 @@ DINGTALK_WEBHOOK=https://oapi.dingtalk.com/robot/send?access_token=你的access_
 MONITORED_CUBES=ZH123456
 ```
 
-### 3. 运行
+### 3. 一键启动（后台监控 + 前端页面）
+
+```bash
+pip install -r requirements.txt
+python web_app.py
+```
+
+或双击 `start.bat`。
+
+启动后会：
+- 开启定时监控后台
+- 启动 Web 控制台
+- 自动打开浏览器访问 [http://127.0.0.1:8080](http://127.0.0.1:8080)
+
+可在页面查看持仓、日志，并直接编辑配置。
+
+可选环境变量：
+
+| 变量 | 默认 | 说明 |
+|------|------|------|
+| `WEB_HOST` | `127.0.0.1` | 监听地址 |
+| `WEB_PORT` | `8080` | 端口 |
+| `OPEN_BROWSER` | `true` | 是否自动打开浏览器 |
+| `START_MONITOR` | `true` | 是否启动后台监控线程 |
+
+仅跑监控脚本（无网页）：
 
 ```bash
 python xueqiu_monitor.py
@@ -117,7 +142,15 @@ python xueqiu_monitor.py
 
 ```
 xueqiu_monitor/
-├── xueqiu_monitor.py    # 主脚本
+├── start.bat            # 一键启动（后台 + 前端）
+├── web_app.py           # Web 控制台 + 后台监控入口
+├── xueqiu_monitor.py    # 纯监控脚本（无网页）
+├── web/                 # 前端页面
+│   ├── index.html
+│   ├── config.html
+│   ├── style.css
+│   ├── app.js
+│   └── config.js
 ├── .env                 # 配置（需手动创建）
 ├── .env.example         # 配置模板
 ├── CLAUDE.md            # 开发指引

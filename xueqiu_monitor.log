@@ -119,3 +119,397 @@
 2026-04-28 23:09:04,136 [INFO] [ZH3605259] 通知发送成功
 2026-04-28 23:09:06,140 [INFO] 等待 30 秒后再次检查（下次约 23:09:06）...
 2026-04-28 23:09:25,721 [INFO] 监控已手动停止
+2026-05-30 20:53:23,352 [INFO] 首次检查...
+2026-05-30 20:53:23,354 [INFO] ─── 检查组合 ZH3605259 ───
+2026-05-30 20:53:23,464 [INFO] [ZH3605259] 当前持仓 2 只 (current)
+2026-05-30 20:53:23,464 [INFO] 持仓数量: 2 只
+2026-05-30 20:53:23,558 [INFO] 组合名称: ZH3605259
+2026-05-30 20:53:23,558 [INFO] [ZH3605259] 发现新调仓记录（ID=222753549，上次=None）
+2026-05-30 20:53:23,558 [INFO] [ZH3605259] 检测到 4 项变动，准备发送通知
+2026-05-30 20:53:23,718 [INFO] [ZH3605259] 通知发送成功
+2026-05-30 20:53:25,720 [INFO] 等待 30 秒后再次检查（下次约 20:53:25）...
+2026-05-30 20:53:55,721 [INFO] ─── 检查组合 ZH3605259 ───
+2026-05-30 20:53:55,894 [INFO] [ZH3605259] 当前持仓 2 只 (current)
+2026-05-30 20:53:55,896 [INFO] 持仓数量: 2 只
+2026-05-30 20:53:55,995 [INFO] 组合名称: ZH3605259
+2026-05-30 20:53:55,995 [INFO] [ZH3605259] 调仓记录未变化（ID=222753549），跳过通知
+2026-05-30 20:53:55,996 [INFO] 等待 30 秒后再次检查（下次约 20:53:55）...
+2026-05-30 20:54:05,258 [INFO] 监控已手动停止
+2026-05-30 20:54:07,061 [INFO] 首次检查...
+2026-05-30 20:54:07,062 [INFO] ─── 检查组合 ZH3605259 ───
+2026-05-30 20:54:07,170 [INFO] [ZH3605259] 当前持仓 2 只 (current)
+2026-05-30 20:54:07,170 [INFO] 持仓数量: 2 只
+2026-05-30 20:54:07,273 [INFO] 组合名称: ZH3605259
+2026-05-30 20:54:07,274 [INFO] [ZH3605259] 发现新调仓记录（ID=222753549，上次=None）
+2026-05-30 20:54:07,274 [INFO] [ZH3605259] 检测到 2 项变动，准备发送通知
+2026-05-30 20:54:07,422 [INFO] [ZH3605259] 通知发送成功
+2026-05-30 20:54:09,423 [INFO] 等待 30 秒后再次检查（下次约 20:54:09）...
+2026-05-30 20:54:39,424 [INFO] ─── 检查组合 ZH3605259 ───
+2026-05-30 20:54:39,535 [INFO] [ZH3605259] 当前持仓 2 只 (current)
+2026-05-30 20:54:39,535 [INFO] 持仓数量: 2 只
+2026-05-30 20:54:39,640 [INFO] 组合名称: ZH3605259
+2026-05-30 20:54:39,641 [INFO] [ZH3605259] 调仓记录未变化（ID=222753549），跳过通知
+2026-05-30 20:54:39,641 [INFO] 等待 30 秒后再次检查（下次约 20:54:39）...
+2026-05-30 20:55:09,642 [INFO] ─── 检查组合 ZH3605259 ───
+2026-05-30 20:55:09,752 [INFO] [ZH3605259] 当前持仓 2 只 (current)
+2026-05-30 20:55:09,752 [INFO] 持仓数量: 2 只
+2026-05-30 20:55:09,851 [INFO] 组合名称: ZH3605259
+2026-05-30 20:55:09,851 [INFO] [ZH3605259] 发现新调仓记录（ID=226505510，上次=222753549）
+2026-05-30 20:55:09,852 [INFO] [ZH3605259] 检测到 2 项变动，准备发送通知
+2026-05-30 20:55:10,113 [INFO] [ZH3605259] 通知发送成功
+2026-05-30 20:55:12,114 [INFO] 等待 30 秒后再次检查（下次约 20:55:12）...
+2026-05-30 20:55:17,720 [INFO] 监控已手动停止
+2026-10-02 20:12:00,843 [INFO] 首次检查...
+2026-10-02 20:12:00,843 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:12:01,470 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:12:16,505 [ERROR] 请求异常: https://stock.xueqiu.com/v5/cube/rebalancing/current.json -> HTTPSConnectionPool(host='stock.xueqiu.com', port=443): Read timed out. (read timeout=15)
+2026-10-02 20:12:16,731 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:12:16,731 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:12:16,731 [INFO] 持仓数量: 0 只
+2026-10-02 20:12:16,731 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:12:16,986 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:12:16,986 [INFO] 组合名称: ZH3605259
+2026-10-02 20:12:16,986 [INFO] [ZH3605259] 检测到 2 项变动，准备发送通知
+2026-10-02 20:12:18,143 [INFO] [ZH3605259] 通知发送成功
+2026-10-02 20:12:20,145 [INFO] 等待 30 秒后再次检查（下次约 20:12:20）...
+2026-10-02 20:12:50,146 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:12:50,361 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:13:05,406 [ERROR] 请求异常: https://stock.xueqiu.com/v5/cube/rebalancing/current.json -> HTTPSConnectionPool(host='stock.xueqiu.com', port=443): Read timed out. (read timeout=15)
+2026-10-02 20:13:05,608 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:13:05,608 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:13:05,609 [INFO] 持仓数量: 0 只
+2026-10-02 20:13:05,609 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:13:05,813 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:13:05,813 [INFO] 组合名称: ZH3605259
+2026-10-02 20:13:05,813 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:13:07,814 [INFO] 等待 30 秒后再次检查（下次约 20:13:07）...
+2026-10-02 20:13:37,815 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:13:38,016 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:13:38,765 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:13:38,765 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:13:38,980 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:13:38,980 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:13:38,980 [INFO] 持仓数量: 0 只
+2026-10-02 20:13:38,980 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:13:39,210 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:13:39,210 [INFO] 组合名称: ZH3605259
+2026-10-02 20:13:39,210 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:13:41,212 [INFO] 等待 30 秒后再次检查（下次约 20:13:41）...
+2026-10-02 20:14:11,212 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:14:11,495 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:14:11,622 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:14:11,622 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:14:11,817 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:14:11,817 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:14:11,817 [INFO] 持仓数量: 0 只
+2026-10-02 20:14:11,817 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:14:12,021 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:14:12,021 [INFO] 组合名称: ZH3605259
+2026-10-02 20:14:12,021 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:14:14,023 [INFO] 等待 30 秒后再次检查（下次约 20:14:14）...
+2026-10-02 20:14:44,023 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:14:44,258 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:14:44,390 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:14:44,391 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:14:44,602 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:14:44,602 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:14:44,602 [INFO] 持仓数量: 0 只
+2026-10-02 20:14:44,602 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:14:44,826 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:14:44,826 [INFO] 组合名称: ZH3605259
+2026-10-02 20:14:44,826 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:14:46,828 [INFO] 等待 30 秒后再次检查（下次约 20:14:46）...
+2026-10-02 20:15:16,828 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:15:17,128 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:15:17,259 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:15:17,259 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:15:17,527 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:15:17,528 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:15:17,528 [INFO] 持仓数量: 0 只
+2026-10-02 20:15:17,528 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:15:17,764 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:15:17,764 [INFO] 组合名称: ZH3605259
+2026-10-02 20:15:17,764 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:15:19,766 [INFO] 等待 30 秒后再次检查（下次约 20:15:19）...
+2026-10-02 20:15:49,766 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:15:49,969 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:15:50,092 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:15:50,092 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:15:50,329 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:15:50,329 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:15:50,330 [INFO] 持仓数量: 0 只
+2026-10-02 20:15:50,330 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:15:50,527 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:15:50,527 [INFO] 组合名称: ZH3605259
+2026-10-02 20:15:50,527 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:15:52,528 [INFO] 等待 30 秒后再次检查（下次约 20:15:52）...
+2026-10-02 20:16:22,529 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:16:22,807 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:16:23,049 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:16:23,050 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:16:23,293 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:16:23,294 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:16:23,294 [INFO] 持仓数量: 0 只
+2026-10-02 20:16:23,294 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:16:23,764 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:16:23,764 [INFO] 组合名称: ZH3605259
+2026-10-02 20:16:23,764 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:16:25,765 [INFO] 等待 30 秒后再次检查（下次约 20:16:25）...
+2026-10-02 20:16:55,766 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:16:56,004 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:16:56,139 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:16:56,139 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:16:56,458 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:16:56,458 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:16:56,458 [INFO] 持仓数量: 0 只
+2026-10-02 20:16:56,459 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:16:56,669 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:16:56,669 [INFO] 组合名称: ZH3605259
+2026-10-02 20:16:56,669 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:16:58,670 [INFO] 等待 30 秒后再次检查（下次约 20:16:58）...
+2026-10-02 20:17:28,671 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:17:28,887 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:17:29,014 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:17:29,015 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:17:29,533 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:17:29,533 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:17:29,533 [INFO] 持仓数量: 0 只
+2026-10-02 20:17:29,533 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:17:29,809 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:17:29,809 [INFO] 组合名称: ZH3605259
+2026-10-02 20:17:29,809 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:17:31,810 [INFO] 等待 30 秒后再次检查（下次约 20:17:31）...
+2026-10-02 20:18:01,811 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:18:02,052 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:18:02,170 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:18:02,170 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:18:02,411 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:18:02,411 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:18:02,411 [INFO] 持仓数量: 0 只
+2026-10-02 20:18:02,411 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:18:02,644 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:18:02,644 [INFO] 组合名称: ZH3605259
+2026-10-02 20:18:02,644 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:18:04,646 [INFO] 等待 30 秒后再次检查（下次约 20:18:04）...
+2026-10-02 20:18:34,647 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:18:34,969 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:18:35,366 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:18:35,367 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:18:35,892 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:18:35,892 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:18:35,892 [INFO] 持仓数量: 0 只
+2026-10-02 20:18:35,892 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:18:36,109 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:18:36,110 [INFO] 组合名称: ZH3605259
+2026-10-02 20:18:36,110 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:18:38,111 [INFO] 等待 30 秒后再次检查（下次约 20:18:38）...
+2026-10-02 20:19:08,111 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:19:08,631 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:19:08,805 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:19:08,805 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:19:09,107 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:19:09,107 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:19:09,107 [INFO] 持仓数量: 0 只
+2026-10-02 20:19:09,107 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:19:09,645 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:19:09,645 [INFO] 组合名称: ZH3605259
+2026-10-02 20:19:09,645 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:19:11,646 [INFO] 等待 30 秒后再次检查（下次约 20:19:11）...
+2026-10-02 20:19:41,647 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:19:41,878 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:19:42,002 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:19:42,003 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:19:42,239 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:19:42,239 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:19:42,239 [INFO] 持仓数量: 0 只
+2026-10-02 20:19:42,239 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:19:42,546 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:19:42,546 [INFO] 组合名称: ZH3605259
+2026-10-02 20:19:42,546 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:19:44,547 [INFO] 等待 30 秒后再次检查（下次约 20:19:44）...
+2026-10-02 20:20:14,548 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:20:14,773 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:20:14,914 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:20:14,914 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:20:15,124 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:20:15,125 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:20:15,125 [INFO] 持仓数量: 0 只
+2026-10-02 20:20:15,125 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:20:15,389 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:20:15,389 [INFO] 组合名称: ZH3605259
+2026-10-02 20:20:15,389 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:20:17,390 [INFO] 等待 30 秒后再次检查（下次约 20:20:17）...
+2026-10-02 20:20:47,391 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:20:47,673 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:20:47,803 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:20:47,803 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:20:48,036 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:20:48,036 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:20:48,036 [INFO] 持仓数量: 0 只
+2026-10-02 20:20:48,036 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:20:48,264 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:20:48,264 [INFO] 组合名称: ZH3605259
+2026-10-02 20:20:48,264 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:20:50,265 [INFO] 等待 30 秒后再次检查（下次约 20:20:50）...
+2026-10-02 20:21:04,651 [INFO] 后台监控线程已启动
+2026-10-02 20:21:07,977 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:21:08,941 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:21:20,265 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:21:20,603 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:21:21,215 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:21:21,215 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:21:21,431 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:21:21,431 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:21:21,431 [INFO] 持仓数量: 0 只
+2026-10-02 20:21:21,431 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:21:21,677 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:21:21,677 [INFO] 组合名称: ZH3605259
+2026-10-02 20:21:21,677 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:21:23,679 [INFO] 等待 30 秒后再次检查（下次约 20:21:23）...
+2026-10-02 20:21:23,979 [ERROR] 请求异常: https://stock.xueqiu.com/v5/cube/rebalancing/current.json -> HTTPSConnectionPool(host='stock.xueqiu.com', port=443): Read timed out. (read timeout=15)
+2026-10-02 20:21:24,348 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:21:24,348 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:21:24,348 [INFO] 持仓数量: 0 只
+2026-10-02 20:21:24,348 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:21:24,651 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:21:24,651 [INFO] 组合名称: ZH3605259
+2026-10-02 20:21:24,651 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:21:53,680 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:21:54,143 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:21:54,278 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:21:54,278 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:21:54,775 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:21:54,775 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:21:54,775 [INFO] 持仓数量: 0 只
+2026-10-02 20:21:54,775 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:21:54,932 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:21:54,932 [INFO] 组合名称: ZH3605259
+2026-10-02 20:21:54,932 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:21:56,934 [INFO] 等待 30 秒后再次检查（下次约 20:21:56）...
+2026-10-02 20:21:57,978 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:22:13,094 [ERROR] 请求异常: https://xueqiu.com/cubes/rebalancing/current.json -> HTTPSConnectionPool(host='www.xueqiu.com', port=443): Read timed out. (read timeout=15)
+2026-10-02 20:22:18,166 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:22:18,166 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:22:20,410 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:22:20,410 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:22:20,410 [INFO] 持仓数量: 0 只
+2026-10-02 20:22:20,410 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:22:20,874 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:22:20,874 [INFO] 组合名称: ZH3605259
+2026-10-02 20:22:20,874 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:22:26,935 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:22:27,478 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:22:27,616 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:22:27,616 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:22:27,849 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:22:27,849 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:22:27,849 [INFO] 持仓数量: 0 只
+2026-10-02 20:22:27,849 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:22:28,289 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:22:28,289 [INFO] 组合名称: ZH3605259
+2026-10-02 20:22:28,290 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:22:30,291 [INFO] 等待 30 秒后再次检查（下次约 20:22:30）...
+2026-10-02 20:22:55,028 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:23:00,292 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:23:00,815 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:23:00,934 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:23:00,934 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:23:01,565 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:23:01,565 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:23:01,565 [INFO] 持仓数量: 0 只
+2026-10-02 20:23:01,565 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:23:01,791 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:23:01,791 [INFO] 组合名称: ZH3605259
+2026-10-02 20:23:01,792 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:23:03,793 [INFO] 等待 30 秒后再次检查（下次约 20:23:03）...
+2026-10-02 20:23:10,145 [ERROR] 请求异常: https://xueqiu.com/cubes/rebalancing/current.json -> HTTPSConnectionPool(host='www.xueqiu.com', port=443): Read timed out. (read timeout=15)
+2026-10-02 20:23:25,168 [ERROR] 请求异常: https://stock.xueqiu.com/v5/cube/rebalancing/current.json -> HTTPSConnectionPool(host='stock.xueqiu.com', port=443): Read timed out. (read timeout=15)
+2026-10-02 20:23:26,032 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:23:26,032 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:23:26,032 [INFO] 持仓数量: 0 只
+2026-10-02 20:23:26,032 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:23:26,226 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:23:26,227 [INFO] 组合名称: ZH3605259
+2026-10-02 20:23:26,227 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:23:33,794 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:23:34,239 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:23:34,382 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:23:34,382 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:23:34,654 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:23:34,654 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:23:34,654 [INFO] 持仓数量: 0 只
+2026-10-02 20:23:34,654 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:23:34,858 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:23:34,858 [INFO] 组合名称: ZH3605259
+2026-10-02 20:23:34,858 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:23:36,860 [INFO] 等待 30 秒后再次检查（下次约 20:23:36）...
+2026-10-02 20:23:59,192 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:24:01,513 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:24:06,861 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:24:07,103 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:24:07,230 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:24:07,231 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:24:08,290 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:24:08,290 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:24:08,290 [INFO] 持仓数量: 0 只
+2026-10-02 20:24:08,290 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:24:09,167 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:24:09,167 [INFO] 组合名称: ZH3605259
+2026-10-02 20:24:09,167 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:24:11,168 [INFO] 等待 30 秒后再次检查（下次约 20:24:11）...
+2026-10-02 20:24:16,548 [ERROR] 请求异常: https://stock.xueqiu.com/v5/cube/rebalancing/current.json -> HTTPSConnectionPool(host='stock.xueqiu.com', port=443): Read timed out. (read timeout=15)
+2026-10-02 20:24:16,776 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:24:16,776 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:24:16,776 [INFO] 持仓数量: 0 只
+2026-10-02 20:24:16,776 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:24:16,945 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:24:16,945 [INFO] 组合名称: ZH3605259
+2026-10-02 20:24:16,945 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:24:41,169 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:24:41,904 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:24:42,262 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:24:42,262 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:24:42,562 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:24:42,563 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:24:42,563 [INFO] 持仓数量: 0 只
+2026-10-02 20:24:42,563 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:24:43,075 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:24:43,075 [INFO] 组合名称: ZH3605259
+2026-10-02 20:24:43,076 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:24:45,077 [INFO] 等待 30 秒后再次检查（下次约 20:24:45）...
+2026-10-02 20:24:50,679 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:25:05,795 [ERROR] 请求异常: https://xueqiu.com/cubes/rebalancing/current.json -> HTTPSConnectionPool(host='www.xueqiu.com', port=443): Read timed out. (read timeout=15)
+2026-10-02 20:25:15,078 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:25:15,284 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:25:15,418 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:25:15,418 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:25:15,626 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:25:15,626 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:25:15,626 [INFO] 持仓数量: 0 只
+2026-10-02 20:25:15,626 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:25:15,832 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:25:15,832 [INFO] 组合名称: ZH3605259
+2026-10-02 20:25:15,832 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:25:17,833 [INFO] 等待 30 秒后再次检查（下次约 20:25:17）...
+2026-10-02 20:25:20,822 [ERROR] 请求异常: https://stock.xueqiu.com/v5/cube/rebalancing/current.json -> HTTPSConnectionPool(host='stock.xueqiu.com', port=443): Read timed out. (read timeout=15)
+2026-10-02 20:25:35,949 [ERROR] 请求异常: https://xueqiu.com/cubes/rebalancing/history.json -> HTTPSConnectionPool(host='www.xueqiu.com', port=443): Read timed out. (read timeout=15)
+2026-10-02 20:25:35,949 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:25:35,949 [INFO] 持仓数量: 0 只
+2026-10-02 20:25:35,949 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:25:36,588 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:25:36,588 [INFO] 组合名称: ZH3605259
+2026-10-02 20:25:36,588 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:25:47,834 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:25:48,333 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/current.json
+2026-10-02 20:25:48,498 [ERROR] HTTP 403: https://stock.xueqiu.com/v5/cube/rebalancing/current.json
+2026-10-02 20:25:48,498 [CRITICAL] 雪球 Cookie 已失效，请更新 XUEQIU_COOKIE！
+2026-10-02 20:25:48,755 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:25:48,755 [WARNING] 持仓解析失败('NoneType' object has no attribute 'get')，返回空列表
+2026-10-02 20:25:48,755 [INFO] 持仓数量: 0 只
+2026-10-02 20:25:48,755 [WARNING] [ZH3605259] 持仓列表为空，可能 Cookie 失效或组合不存在
+2026-10-02 20:25:48,975 [ERROR] HTTP 400: https://xueqiu.com/cubes/rebalancing/history.json
+2026-10-02 20:25:48,976 [INFO] 组合名称: ZH3605259
+2026-10-02 20:25:48,976 [INFO] [ZH3605259] 无持仓变动（阈值 1.0%）
+2026-10-02 20:25:50,977 [INFO] 等待 30 秒后再次检查（下次约 20:25:50）...
+2026-10-02 20:26:10,944 [INFO] ─── 检查组合 ZH3605259 ───
+2026-10-02 20:26:16,025 [ERROR] 请求异常: https://xueqiu.com/cubes/rebalancing/current.json -> HTTPSConnectionPool(host='www.xueqiu.com', port=443): Max retries exceeded with url: /cubes/rebalancing/current.json?cube_symbol=ZH3605259 (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)')))

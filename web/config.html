@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>配置 · 雪球组合监控</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand brand-link" href="/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>雪球组合监控</h1>
+        <p class="brand-sub">配置管理</p>
+      </div>
+    </a>
+    <div class="topbar-actions">
+      <a class="btn ghost" href="/">返回看板</a>
+      <button id="btn-toggle-secrets" class="btn ghost" type="button">显示敏感信息</button>
+      <button id="btn-config-reload" class="btn ghost" type="button">重新加载</button>
+      <button id="btn-config-save" class="btn primary" type="submit" form="config-form">保存配置</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel config-panel">
+      <div class="panel-head">
+        <h2>全部配置</h2>
+        <div class="panel-head-actions">
+          <span id="config-live" class="meta-chip live-chip">实时同步 .env</span>
+          <span id="config-dirty-hint" class="meta-chip dirty-chip" hidden>编辑中 · 暂停自动覆盖</span>
+        </div>
+      </div>
+      <form id="config-form" class="config-form" autocomplete="off">
+        <div class="field full">
+          <label for="cfg-cookie">雪球 Cookie <span class="req">必填</span></label>
+          <textarea id="cfg-cookie" name="xueqiu_cookie" rows="3" placeholder="xq_a_token=...; u=..." required class="secret-masked"></textarea>
+          <p class="field-hint">登录雪球后从浏览器 Network 请求头复制完整 Cookie。默认隐藏显示，可用顶部按钮切换。</p>
+        </div>
+
+        <div class="field full">
+          <label for="cfg-webhook">钉钉 Webhook <span class="req">必填</span></label>
+          <input id="cfg-webhook" name="dingtalk_webhook" type="password" placeholder="https://oapi.dingtalk.com/robot/send?access_token=..." required />
+        </div>
+
+        <div class="field full">
+          <label for="cfg-cubes">监控组合 <span class="req">必填</span></label>
+          <input id="cfg-cubes" name="monitored_cubes" type="text" placeholder="ZH123456,ZH654321" required />
+          <p class="field-hint">多个组合用英文逗号分隔</p>
+        </div>
+
+        <div class="field">
+          <label for="cfg-interval">检查间隔（秒）</label>
+          <input id="cfg-interval" name="check_interval" type="number" min="10" step="1" />
+        </div>
+
+        <div class="field">
+          <label for="cfg-threshold">仓位变动阈值（%）</label>
+          <input id="cfg-threshold" name="weight_change_threshold" type="number" min="0" step="0.1" />
+        </div>
+
+        <div class="field">
+          <label for="cfg-logfile">日志文件</label>
+          <input id="cfg-logfile" name="log_file" type="text" placeholder="xueqiu_monitor.log" />
+        </div>
+
+        <div class="field check-field">
+          <label class="check-label" for="cfg-atall">
+            <input id="cfg-atall" name="at_all" type="checkbox" />
+            <span>钉钉通知 @所有人</span>
+          </label>
+        </div>
+
+        <div class="form-actions full">
+          <a class="btn ghost" href="/">取消</a>
+          <button class="btn primary" type="submit">保存配置</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/static/config.js"></script>
+</body>
+</html>

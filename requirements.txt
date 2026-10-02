@@ -1,8 +1,12 @@
 # 安装命令：
-# pip install requests python-dotenv
+# pip install -r requirements.txt
 
 # 核心依赖（必须）
 requests>=2.28.0
 
 # 可选：支持从 .env 文件读取配置
 python-dotenv>=1.0.0
+
+# Web 控制台
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0

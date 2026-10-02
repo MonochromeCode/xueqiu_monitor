@@ -1,43 +1,13 @@
 {
-  "ZH2605259": {
-    "positions": [
-      {
-        "symbol": "SH600073",
-        "name": "光明肉业",
-        "weight": 100.0,
-        "prev_weight": 0.0,
-        "price": 0.0
-      }
-    ],
-    "nav": {
-      "name": "ZH2605259",
-      "today_gain_rate": 0,
-      "total_gain_rate": 0
-    },
-    "last_check": "2026-04-28T23:08:43.524782"
+  "_token": {
+    "hash": "4bff0097b90bc044f8e9d723ee40c798"
   },
   "ZH3605259": {
-    "positions": [
-      {
-        "symbol": "SH600012",
-        "name": "皖通高速",
-        "weight": 94.0,
-        "prev_weight": 0.0,
-        "price": 0.0
-      },
-      {
-        "symbol": "SZ300012",
-        "name": "华测检测",
-        "weight": 6.0,
-        "prev_weight": 0.0,
-        "price": 0.0
-      }
-    ],
+    "positions": [],
     "nav": {
-      "name": "ZH3605259",
-      "today_gain_rate": 0,
-      "total_gain_rate": 0
+      "name": "ZH3605259"
     },
-    "last_check": "2026-04-28T23:09:04.136954"
+    "last_rb_id": null,
+    "last_check": "2026-10-02T20:26:22.470387"
   }
 }
