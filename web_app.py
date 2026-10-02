@@ -293,6 +293,14 @@ def _cube_summary(cube_id: str, data: dict) -> dict[str, Any]:
     }
 
 
+def _recent_changes(state: dict, limit: int = 30) -> list[dict]:
+    history = state.get("_changes") or []
+    if not isinstance(history, list):
+        return []
+    limit = max(1, min(int(limit), 100))
+    return history[:limit]
+
+
 @app.get("/api/health")
 def health():
     return {"ok": True, "time": datetime.now().isoformat(timespec="seconds")}
@@ -375,7 +383,7 @@ def status():
         })
 
     return {
-        "version": "2.1",
+        "version": "2.2",
         "config_ok": _config_ok(),
         "monitored_cubes": mon.MONITORED_CUBES,
         "check_interval": mon.CHECK_INTERVAL,
@@ -389,8 +397,16 @@ def status():
         "token": _token_info(state),
         "check": _check_status,
         "cubes": cubes,
+        "recent_changes": _recent_changes(state, 30),
         "server_time": datetime.now().isoformat(timespec="seconds"),
     }
+
+
+@app.get("/api/changes")
+def list_changes(limit: int = 50):
+    state = _load_state()
+    items = _recent_changes(state, limit)
+    return {"changes": items, "count": len(items)}
 
 
 @app.get("/api/cubes")

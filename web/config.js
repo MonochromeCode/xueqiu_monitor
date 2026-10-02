@@ -24,7 +24,7 @@ let lastMtime = null;
 let saving = false;
 let pollTimer = null;
 let configInFlight = false;
-let secretsVisible = false;
+let secretsVisible = true;
 
 function formatTime(iso) {
   if (!iso) return "—";

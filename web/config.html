@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>配置 · 雪球组合监控</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -22,7 +23,7 @@
     </a>
     <div class="topbar-actions">
       <a class="btn ghost" href="/">返回看板</a>
-      <button id="btn-toggle-secrets" class="btn ghost" type="button">显示敏感信息</button>
+      <button id="btn-toggle-secrets" class="btn ghost" type="button">隐藏敏感信息</button>
       <button id="btn-config-reload" class="btn ghost" type="button">重新加载</button>
       <button id="btn-config-save" class="btn primary" type="submit" form="config-form">保存配置</button>
     </div>
@@ -40,13 +41,13 @@
       <form id="config-form" class="config-form" autocomplete="off">
         <div class="field full">
           <label for="cfg-cookie">雪球 Cookie <span class="req">必填</span></label>
-          <textarea id="cfg-cookie" name="xueqiu_cookie" rows="3" placeholder="xq_a_token=...; u=..." required class="secret-masked"></textarea>
-          <p class="field-hint">登录雪球后从浏览器 Network 请求头复制完整 Cookie。默认隐藏显示，可用顶部按钮切换。</p>
+          <textarea id="cfg-cookie" name="xueqiu_cookie" rows="3" placeholder="xq_a_token=...; u=..." required></textarea>
+          <p class="field-hint">登录雪球后从浏览器 Network 请求头复制完整 Cookie</p>
         </div>
 
         <div class="field full">
           <label for="cfg-webhook">钉钉 Webhook <span class="req">必填</span></label>
-          <input id="cfg-webhook" name="dingtalk_webhook" type="password" placeholder="https://oapi.dingtalk.com/robot/send?access_token=..." required />
+          <input id="cfg-webhook" name="dingtalk_webhook" type="text" placeholder="https://oapi.dingtalk.com/robot/send?access_token=..." required />
         </div>
 
         <div class="field full">

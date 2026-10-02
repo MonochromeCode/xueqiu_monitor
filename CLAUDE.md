@@ -44,5 +44,5 @@
 - 保持单文件架构，避免过度模块化
 - API 接口变更时更新 `XueQiuClient` 中的降级策略
 - 通知格式使用钉钉 Markdown（非标准 Markdown）
-- 状态文件 `monitor_state.json` 保持向后兼容
+- 状态文件 `monitor_state.json` 保持向后兼容（含 `_token`、`_changes` 与各组合快照）
 - 启动自检保持严格（配置不完整直接退出）

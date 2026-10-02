@@ -4,6 +4,9 @@ const els = {
   stats: $("#stats"),
   cubes: $("#cubes"),
   cubeCount: $("#cube-count"),
+  changes: $("#changes"),
+  changesCount: $("#changes-count"),
+  changesLive: $("#changes-live"),
   logs: $("#logs"),
   serverTime: $("#server-time"),
   btnRefresh: $("#btn-refresh"),
@@ -21,6 +24,9 @@ let lastLogMtime = null;
 let lastStatsHtml = "";
 let lastCubesHtml = "";
 let lastCubeCount = "";
+let lastChangesHtml = "";
+let lastChangesCount = "";
+let lastChangeIds = "";
 let statusInFlight = false;
 let logsInFlight = false;
 
@@ -237,6 +243,76 @@ function setLoading() {
   }
 }
 
+function changeTypeClass(type) {
+  if (type === "新增" || type === "加仓") return type === "新增" ? "add" : "buy";
+  if (type === "卖出") return "sell";
+  if (type === "减仓") return "cut";
+  return "buy";
+}
+
+function renderChanges(events) {
+  const list = Array.isArray(events) ? events : [];
+  const countText = `${list.length} 条`;
+  if (countText !== lastChangesCount) {
+    lastChangesCount = countText;
+    if (els.changesCount) els.changesCount.textContent = countText;
+  }
+
+  const ids = list.map((e) => e.id).join("|");
+  if (ids === lastChangeIds && lastChangesHtml) {
+    if (els.changesLive) els.changesLive.textContent = "与钉钉同步";
+    return;
+  }
+  lastChangeIds = ids;
+
+  if (!list.length) {
+    const empty = `<div class="empty">暂无持仓变动。检测到变动并成功推送钉钉后，会在这里实时显示（与钉钉消息同步）。</div>`;
+    if (empty !== lastChangesHtml) {
+      lastChangesHtml = empty;
+      els.changes.innerHTML = empty;
+    }
+    return;
+  }
+
+  const html = list
+    .map((ev) => {
+      const items = (ev.changes || [])
+        .map((c) => {
+          const price = Number(c.price) || 0;
+          const detail = escapeHtml(c.detail || "");
+          return `
+            <li class="change-item">
+              <span class="change-type ${changeTypeClass(c.type)}">${escapeHtml(c.type || "")}</span>
+              <div class="change-main">
+                <strong>${escapeHtml(c.name || c.symbol || "")}</strong>
+                <span>${escapeHtml(c.symbol || "")}${price ? ` · ¥${price.toFixed(2)}` : ""}</span>
+              </div>
+              <div class="change-detail">${detail}</div>
+            </li>`;
+        })
+        .join("");
+
+      return `
+        <article class="change-card">
+          <div class="change-head">
+            <div>
+              <h3 class="change-title">${escapeHtml(ev.cube_name || ev.cube_id || "组合变动")}</h3>
+              <p class="change-sub">${escapeHtml(ev.cube_id || "")}${ev.rb_id != null ? ` · 调仓 ${ev.rb_id}` : ""} · 已推送钉钉</p>
+            </div>
+            <div class="change-time" title="${escapeHtml(formatTime(ev.time))}">${relativeTime(ev.time)}</div>
+          </div>
+          <ul class="change-items">${items}</ul>
+        </article>`;
+    })
+    .join("");
+
+  if (html !== lastChangesHtml) {
+    lastChangesHtml = html;
+    els.changes.innerHTML = html;
+  }
+  if (els.changesLive) els.changesLive.textContent = "与钉钉同步";
+}
+
 async function loadStatus() {
   if (statusInFlight) return null;
   statusInFlight = true;
@@ -244,6 +320,7 @@ async function loadStatus() {
     const data = await api("/api/status");
     renderStats(data);
     renderCubes(data.cubes || []);
+    renderChanges(data.recent_changes || []);
     return data;
   } finally {
     statusInFlight = false;

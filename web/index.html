@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>雪球组合监控</title>
+  <link rel="icon" type="image/png" href="/static/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -37,6 +38,17 @@
         <span id="cube-count" class="meta-chip">0</span>
       </div>
       <div id="cubes" class="cube-list"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>持仓变动</h2>
+        <div class="panel-head-actions">
+          <span id="changes-live" class="meta-chip live-chip">与钉钉同步</span>
+          <span id="changes-count" class="meta-chip">0</span>
+        </div>
+      </div>
+      <div id="changes" class="change-list" aria-live="polite"></div>
     </section>
 
     <section class="panel log-panel">

@@ -344,6 +344,7 @@ class DingTalkNotifier:
 #  💾  状态持久化
 # ══════════════════════════════════════════════════════════════════
 _STATE_FILE = os.path.join(os.path.dirname(__file__), "monitor_state.json")
+_CHANGE_HISTORY_LIMIT = 100
 
 
 def _load_state() -> dict:
@@ -372,6 +373,57 @@ def _save_cube_state(state: dict, cube_id: str, positions: list, nav_info: dict,
         "last_rb_id": rb_id,
         "last_check": datetime.now().isoformat(),
     }
+
+
+def format_change_detail(c: dict) -> str:
+    """与钉钉通知一致的变动描述（不含 emoji / 加粗标记）"""
+    change_type = c["type"]
+    old_w = float(c.get("old_weight") or 0)
+    new_w = float(c.get("new_weight") or 0)
+    if change_type == "新增":
+        return f"建仓 {new_w:.1f}%"
+    if change_type == "卖出":
+        return f"清仓（原仓位 {old_w:.1f}%）"
+    if change_type == "加仓":
+        return f"{old_w:.1f}% → {new_w:.1f}%（+{new_w - old_w:.1f}%）"
+    return f"{old_w:.1f}% → {new_w:.1f}%（{new_w - old_w:.1f}%）"
+
+
+def _append_change_history(
+    state: dict,
+    *,
+    cube_id: str,
+    nav_info: dict,
+    changes: list[dict],
+    rb_id,
+    title: str,
+) -> None:
+    """记录已成功推送钉钉的持仓变动，供前端实时展示。"""
+    now = datetime.now()
+    event = {
+        "id": f"{cube_id}-{rb_id or 'na'}-{int(now.timestamp() * 1000)}",
+        "cube_id": cube_id,
+        "cube_name": (nav_info or {}).get("name") or cube_id,
+        "rb_id": rb_id,
+        "time": now.isoformat(timespec="seconds"),
+        "title": title,
+        "notified": True,
+        "changes": [
+            {
+                "type": c.get("type"),
+                "symbol": c.get("symbol"),
+                "name": c.get("name"),
+                "old_weight": c.get("old_weight"),
+                "new_weight": c.get("new_weight"),
+                "price": c.get("price"),
+                "detail": format_change_detail(c),
+            }
+            for c in changes
+        ],
+    }
+    history = state.setdefault("_changes", [])
+    history.insert(0, event)
+    del history[_CHANGE_HISTORY_LIMIT:]
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -477,21 +529,22 @@ def build_markdown(cube_id: str, nav_info: dict, changes: list[dict]) -> tuple[s
         change_type = c["type"]
         sym = c["symbol"]
         n = c["name"]
-        old_w = c["old_weight"]
-        new_w = c["new_weight"]
         price = c["price"]
-
         if change_type == "新增":
-            detail = f"建仓 **{new_w:.1f}%**"
+            detail_md = f"建仓 **{float(c['new_weight']):.1f}%**"
         elif change_type == "卖出":
-            detail = f"清仓（原仓位 {old_w:.1f}%）"
+            detail_md = format_change_detail(c)
         elif change_type == "加仓":
-            detail = f"{old_w:.1f}% → **{new_w:.1f}%**（+{new_w - old_w:.1f}%）"
+            old_w = float(c["old_weight"])
+            new_w = float(c["new_weight"])
+            detail_md = f"{old_w:.1f}% → **{new_w:.1f}%**（+{new_w - old_w:.1f}%）"
         else:
-            detail = f"{old_w:.1f}% → **{new_w:.1f}%**（{new_w - old_w:.1f}%）"
+            old_w = float(c["old_weight"])
+            new_w = float(c["new_weight"])
+            detail_md = f"{old_w:.1f}% → **{new_w:.1f}%**（{new_w - old_w:.1f}%）"
 
         price_str = f"  当前价 ¥{price:.2f}" if price else ""
-        lines.append(f"- {emoji} **{change_type}** {n}（{sym}）：{detail}{price_str}")
+        lines.append(f"- {emoji} **{change_type}** {n}（{sym}）：{detail_md}{price_str}")
 
     content = "\n".join(lines)
     return title, content
@@ -554,8 +607,16 @@ def monitor_once(client: XueQiuClient, notifier: DingTalkNotifier):
                 ok = notifier.send_markdown(title, content, cube_id=cube_id)
                 if ok:
                     logger.info(f"[{cube_id}] 通知发送成功")
-                    # 推送成功 → 更新完整状态（含新 rb_id）
+                    # 推送成功 → 更新完整状态（含新 rb_id）+ 写入变动历史（与钉钉同步）
                     _save_cube_state(state, cube_id, new_positions, nav_info, rb_id)
+                    _append_change_history(
+                        state,
+                        cube_id=cube_id,
+                        nav_info=nav_info,
+                        changes=changes,
+                        rb_id=rb_id,
+                        title=title,
+                    )
                     state_changed = True
                 else:
                     logger.error(f"[{cube_id}] 通知发送失败，保留旧状态，下次重试")
